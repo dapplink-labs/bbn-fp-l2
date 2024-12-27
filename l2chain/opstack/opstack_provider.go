@@ -2,7 +2,6 @@ package opstack
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math/big"
 	"os"
@@ -21,10 +20,7 @@ import (
 	"github.com/ethereum-optimism/optimism/op-service/sources/batching"
 )
 
-var (
-	supportedL2OutputVersion = eth.Bytes32{}
-	ErrProposerNotRunning    = errors.New("proposer is not running")
-)
+var supportedL2OutputVersion = eth.Bytes32{}
 
 type L2OOContract interface {
 	Version(*bind.CallOpts) (string, error)
