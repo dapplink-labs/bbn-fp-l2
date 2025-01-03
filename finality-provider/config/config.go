@@ -39,21 +39,15 @@ const (
 )
 
 var (
-	//   C:\Users\<username>\AppData\Local\ on Windows
-	//   ~/.fpd on Linux
-	//   ~/Users/<username>/Library/Application Support/Fpd on MacOS
-	DefaultFpdDir = btcutil.AppDataDir("fpd", false)
-
+	DefaultFpdDir             = btcutil.AppDataDir("fpd", false)
 	defaultBTCNetParams       = chaincfg.SigNetParams
 	defaultEOTSManagerAddress = "127.0.0.1:" + strconv.Itoa(eotscfg.DefaultRPCPort)
 	DefaultRPCListener        = "127.0.0.1:" + strconv.Itoa(DefaultRPCPort)
 	DefaultDataDir            = DataDir(DefaultFpdDir)
 )
 
-// Config is the main config for the fpd cli command
 type Config struct {
-	LogLevel string `long:"loglevel" description:"Logging level for all subsystems" choice:"trace" choice:"debug" choice:"info" choice:"warn" choice:"error" choice:"fatal"`
-	// ChainType and ChainID (if any) of the chain config identify a consumer chain
+	LogLevel                    string        `long:"loglevel" description:"Logging level for all subsystems" choice:"trace" choice:"debug" choice:"info" choice:"warn" choice:"error" choice:"fatal"`
 	ChainType                   string        `long:"chaintype" description:"the type of the consumer chain" choice:"babylon"`
 	NumPubRand                  uint32        `long:"numPubRand" description:"The number of Schnorr public randomness for each commitment"`
 	NumPubRandMax               uint32        `long:"numpubrandmax" description:"The upper bound of the number of Schnorr public randomness for each commitment"`
@@ -72,6 +66,8 @@ type Config struct {
 
 	PollerConfig *ChainPollerConfig `group:"chainpollerconfig" namespace:"chainpollerconfig"`
 
+	OpEventConfig *OpEventConfig `group:"opeventconfig" namespace:"opeventconfig"`
+
 	DatabaseConfig *DBConfig `group:"dbconfig" namespace:"dbconfig"`
 
 	BabylonConfig *BBNConfig `group:"babylon" namespace:"babylon"`
@@ -86,12 +82,14 @@ func DefaultConfigWithHome(homePath string) Config {
 	bbnCfg.Key = defaultFinalityProviderKeyName
 	bbnCfg.KeyDirectory = homePath
 	pollerCfg := DefaultChainPollerConfig()
+	opEventConfig := DefaultOpEventConfig()
 	cfg := Config{
 		ChainType:                   defaultChainType,
 		LogLevel:                    defaultLogLevel.String(),
 		DatabaseConfig:              DefaultDBConfigWithHomePath(homePath),
 		BabylonConfig:               &bbnCfg,
 		PollerConfig:                &pollerCfg,
+		OpEventConfig:               &opEventConfig,
 		NumPubRand:                  defaultNumPubRand,
 		NumPubRandMax:               defaultNumPubRandMax,
 		MinRandHeightGap:            defaultMinRandHeightGap,
@@ -135,24 +133,13 @@ func DataDir(homePath string) string {
 	return filepath.Join(homePath, defaultDataDirname)
 }
 
-// LoadConfig initializes and parses the config using a config file and command
-// line options.
-//
-// The configuration proceeds as follows:
-//  1. Start with a default config with sane settings
-//  2. Pre-parse the command line to check for an alternative config file
-//  3. Load configuration file overwriting defaults with any specified options
-//  4. Parse CLI options and overwrite/add any specified options
 func LoadConfig(homePath string) (*Config, error) {
-	// The home directory is required to have a configuration file with a specific name
-	// under it.
 	cfgFile := CfgFile(homePath)
 	if !util.FileExists(cfgFile) {
 		return nil, fmt.Errorf("specified config file does "+
 			"not exist in %s", cfgFile)
 	}
 
-	// Next, load any additional configuration options from the file.
 	var cfg Config
 	fileParser := flags.NewParser(&cfg, flags.Default)
 	err := flags.NewIniParser(fileParser).ParseFile(cfgFile)
@@ -168,16 +155,11 @@ func LoadConfig(homePath string) (*Config, error) {
 	return &cfg, nil
 }
 
-// Validate checks the given configuration to be sane. This makes sure no
-// illegal values or a combination of values are set. All file system paths are
-// normalized. The cleaned up config is returned on success.
 func (cfg *Config) Validate() error {
 	if cfg.EOTSManagerAddress == "" {
 		return fmt.Errorf("EOTS manager address not specified")
 	}
-	// Multiple networks can't be selected simultaneously.  Count number of
-	// network flags passed; assign active network params
-	// while we're at it.
+
 	btcNetConfig, err := NetParamsBTC(cfg.BitcoinNetwork)
 	if err != nil {
 		return err
@@ -197,11 +179,9 @@ func (cfg *Config) Validate() error {
 		return fmt.Errorf("invalid metrics config")
 	}
 
-	// All good, return the sanitized result.
 	return nil
 }
 
-// NetParamsBTC parses the BTC net params from config.
 func NetParamsBTC(btcNet string) (chaincfg.Params, error) {
 	switch btcNet {
 	case "mainnet":

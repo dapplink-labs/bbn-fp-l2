@@ -31,7 +31,7 @@ type DGFContract interface {
 	Version(ctx context.Context) (string, error)
 }
 
-type OpStackProviderConfig struct {
+type OpSequencerProviderConfig struct {
 	L1EthRpc               string
 	RollupRpc              string
 	DisputeGameFactoryAddr common.Address
@@ -43,8 +43,8 @@ type OpStackProviderConfig struct {
 	NetworkTimeout         time.Duration
 }
 
-type OpStackProvider struct {
-	opStackCfg     *OpStackProviderConfig
+type OpSequencerProvider struct {
+	opStackCfg     *OpSequencerProviderConfig
 	Log            log.Logger
 	RollupProvider dial.RollupProvider
 
@@ -55,7 +55,7 @@ type OpStackProvider struct {
 	Multicaller *batching.MultiCaller
 }
 
-func NewOpStackProvider(ctx context.Context, cfg *OpStackProviderConfig) (*OpStackProvider, error) {
+func NewOpSequencerProvider(ctx context.Context, cfg *OpSequencerProviderConfig) (*OpSequencerProvider, error) {
 	opLoger := oplog.NewLogger(os.Stdout, cfg.LogConfig)
 	oplog.SetGlobalLogHandler(opLoger.Handler())
 
@@ -88,7 +88,7 @@ func NewOpStackProvider(ctx context.Context, cfg *OpStackProviderConfig) (*OpSta
 		return nil, err
 	}
 
-	return &OpStackProvider{
+	return &OpSequencerProvider{
 		opStackCfg:     cfg,
 		Log:            opLoger,
 		RollupProvider: rollupProvider,
@@ -98,7 +98,7 @@ func NewOpStackProvider(ctx context.Context, cfg *OpStackProviderConfig) (*OpSta
 	}, nil
 }
 
-func (op *OpStackProvider) FetchL2OOOutput(ctx context.Context, fromAddress common.Address) (*eth.OutputResponse, bool, error) {
+func (op *OpSequencerProvider) FetchL2OOOutput(ctx context.Context, fromAddress common.Address) (*eth.OutputResponse, bool, error) {
 	if op.l2ooContract == nil {
 		return nil, false, fmt.Errorf("L2OutputOracle contract not set, cannot fetch next output info")
 	}
@@ -140,7 +140,7 @@ func (op *OpStackProvider) FetchL2OOOutput(ctx context.Context, fromAddress comm
 	return output, true, nil
 }
 
-func (op *OpStackProvider) FetchOutput(ctx context.Context, block uint64) (*eth.OutputResponse, error) {
+func (op *OpSequencerProvider) FetchOutput(ctx context.Context, block uint64) (*eth.OutputResponse, error) {
 	rollupClient, err := op.RollupProvider.RollupClient(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("getting rollup client: %w", err)
@@ -159,7 +159,7 @@ func (op *OpStackProvider) FetchOutput(ctx context.Context, block uint64) (*eth.
 	return output, nil
 }
 
-func (op *OpStackProvider) FetchCurrentBlockNumber(ctx context.Context) (uint64, error) {
+func (op *OpSequencerProvider) FetchCurrentBlockNumber(ctx context.Context) (uint64, error) {
 	rollupClient, err := op.RollupProvider.RollupClient(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("getting rollup client: %w", err)
@@ -174,7 +174,7 @@ func (op *OpStackProvider) FetchCurrentBlockNumber(ctx context.Context) (uint64,
 	return status.FinalizedL2.Number, nil
 }
 
-func (op *OpStackProvider) FetchDGFOutput(ctx context.Context) (*eth.OutputResponse, bool, error) {
+func (op *OpSequencerProvider) FetchDGFOutput(ctx context.Context) (*eth.OutputResponse, bool, error) {
 	currentBlockNumber, err := op.FetchCurrentBlockNumber(ctx)
 	if err != nil {
 		return nil, false, fmt.Errorf("could not fetch current block number: %w", err)
