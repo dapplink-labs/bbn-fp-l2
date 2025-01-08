@@ -4,12 +4,13 @@ import (
 	"context"
 	"os"
 
-	"github.com/ethereum-optimism/optimism/op-proposer/bindings"
-	oplog "github.com/ethereum-optimism/optimism/op-service/log"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	types2 "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
+
+	"github.com/ethereum-optimism/optimism/op-proposer/bindings"
+	oplog "github.com/ethereum-optimism/optimism/op-service/log"
 
 	"github.com/dapplink-labs/bbn-fp-l2/types"
 )
@@ -45,7 +46,7 @@ func NewEventProvider(ctx context.Context, logConfig oplog.CLIConfig) (*EventPro
 	}, nil
 }
 
-func (epd *EventProvider) ProcessStateRootEvent(log types2.Log, L1BlockHash common.Hash) (*types.StateRoot, error) {
+func (epd *EventProvider) ProcessStateRootEvent(log types2.Log) (*types.StateRoot, error) {
 	outputProposed, err := epd.L2ooFilterer.ParseOutputProposed(log)
 	if err != nil {
 		epd.Log.Error("parse output proposed fail", "err", err)
