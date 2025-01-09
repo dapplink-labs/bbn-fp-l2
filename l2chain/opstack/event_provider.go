@@ -2,44 +2,40 @@ package opstack
 
 import (
 	"context"
-	"os"
+	"go.uber.org/zap"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	types2 "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/log"
 
 	"github.com/ethereum-optimism/optimism/op-proposer/bindings"
-	oplog "github.com/ethereum-optimism/optimism/op-service/log"
 
 	"github.com/dapplink-labs/bbn-fp-l2/types"
 )
 
 type EventProvider struct {
-	Log          log.Logger
+	Log          *zap.Logger
 	L2ooFilterer *bindings.L2OutputOracleFilterer
 	L2ooABI      *abi.ABI
 	EpCtx        context.Context
 }
 
-func NewEventProvider(ctx context.Context, logConfig oplog.CLIConfig) (*EventProvider, error) {
-	opLoger := oplog.NewLogger(os.Stdout, logConfig)
-	oplog.SetGlobalLogHandler(opLoger.Handler())
+func NewEventProvider(ctx context.Context, logger *zap.Logger) (*EventProvider, error) {
 
 	l2OutputOracleAbi, err := bindings.L2OutputOracleMetaData.GetAbi()
 	if err != nil {
-		log.Error("get l2 output oracle abi fail", "err", err)
+		logger.Error("get l2 output oracle abi fail", zap.String("err", err.Error()))
 		return nil, err
 	}
 
 	l2OutputOracleUnpack, err := bindings.NewL2OutputOracleFilterer(common.Address{}, nil)
 	if err != nil {
-		log.Error("new l2output oracle fail", "err", err)
+		logger.Error("new l2output oracle fail", zap.String("err", err.Error()))
 		return nil, err
 	}
 
 	return &EventProvider{
-		Log:          opLoger,
+		Log:          logger,
 		L2ooFilterer: l2OutputOracleUnpack,
 		L2ooABI:      l2OutputOracleAbi,
 		EpCtx:        ctx,
@@ -49,10 +45,10 @@ func NewEventProvider(ctx context.Context, logConfig oplog.CLIConfig) (*EventPro
 func (epd *EventProvider) ProcessStateRootEvent(log types2.Log) (*types.StateRoot, error) {
 	outputProposed, err := epd.L2ooFilterer.ParseOutputProposed(log)
 	if err != nil {
-		epd.Log.Error("parse output proposed fail", "err", err)
+		epd.Log.Error("parse output proposed fail", zap.String("err", err.Error()))
 		return nil, err
 	}
-	epd.Log.Info("state root event parse success", "OutputRoot", outputProposed.OutputRoot)
+	epd.Log.Info("state root event parse success", zap.String("OutputRoot", common.Bytes2Hex(outputProposed.OutputRoot[:])))
 	stateRoot := &types.StateRoot{
 		StateRoot:       outputProposed.OutputRoot,
 		L2BlockNumber:   outputProposed.L2BlockNumber,

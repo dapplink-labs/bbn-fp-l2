@@ -52,13 +52,13 @@ func (fp *FinalityProviderInstance) signPubRandCommit(startHeight uint64, numPub
 }
 
 // TODO: have this function in Babylon side
-func getMsgToSignForVote(blockHeight uint64, blockHash []byte) []byte {
-	return append(sdk.Uint64ToBigEndian(blockHeight), blockHash...)
+func getMsgToSignForVote(blockHeight uint64, stateRoot []byte) []byte {
+	return append(sdk.Uint64ToBigEndian(blockHeight), stateRoot...)
 }
 
 func (fp *FinalityProviderInstance) signFinalitySig(b *types.BlockInfo) (*bbntypes.SchnorrEOTSSig, error) {
 	// build proper finality signature request
-	msgToSign := getMsgToSignForVote(b.Height, b.Hash)
+	msgToSign := getMsgToSignForVote(b.Height, b.StateRoot.StateRoot[:])
 	sig, err := fp.em.SignEOTS(fp.btcPk.MustMarshal(), fp.GetChainID(), msgToSign, b.Height, fp.passphrase)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sign EOTS: %w", err)

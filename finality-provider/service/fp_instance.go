@@ -3,6 +3,8 @@ package service
 import (
 	"errors"
 	"fmt"
+	"github.com/dapplink-labs/bbn-fp-l2/ethereum/node"
+	"github.com/dapplink-labs/bbn-fp-l2/l2chain/opstack"
 	"math"
 	"strings"
 	"sync"
@@ -32,11 +34,14 @@ type FinalityProviderInstance struct {
 	pubRandState *pubRandState
 	cfg          *fpcfg.Config
 
-	logger  *zap.Logger
-	em      eotsmanager.EOTSManager
-	cc      clientcontroller.ClientController
-	poller  *ChainPoller
-	metrics *metrics.FpMetrics
+	logger   *zap.Logger
+	em       eotsmanager.EOTSManager
+	cc       clientcontroller.ClientController
+	poller   *OpChainPoller
+	metrics  *metrics.FpMetrics
+	opClient node.EthClient
+	sRStore  *store.OpStateRootStore
+	eP       *opstack.EventProvider
 
 	// passphrase is used to unlock private keys
 	passphrase string
@@ -62,6 +67,9 @@ func NewFinalityProviderInstance(
 	passphrase string,
 	errChan chan<- *CriticalError,
 	logger *zap.Logger,
+	opClient node.EthClient,
+	sRStore *store.OpStateRootStore,
+	eP *opstack.EventProvider,
 ) (*FinalityProviderInstance, error) {
 	sfp, err := s.GetFinalityProvider(fpPk.MustToBTCPK())
 	if err != nil {
@@ -72,7 +80,7 @@ func NewFinalityProviderInstance(
 		return nil, fmt.Errorf("the finality provider instance cannot be initiated with status %s", sfp.Status.String())
 	}
 
-	return newFinalityProviderInstanceFromStore(sfp, cfg, s, prStore, cc, em, metrics, passphrase, errChan, logger)
+	return newFinalityProviderInstanceFromStore(sfp, cfg, s, prStore, cc, em, metrics, passphrase, errChan, logger, opClient, sRStore, eP)
 }
 
 // Helper function to create FinalityProviderInstance from store data
@@ -87,6 +95,9 @@ func newFinalityProviderInstanceFromStore(
 	passphrase string,
 	errChan chan<- *CriticalError,
 	logger *zap.Logger,
+	opClient node.EthClient,
+	sRStore *store.OpStateRootStore,
+	eP *opstack.EventProvider,
 ) (*FinalityProviderInstance, error) {
 	return &FinalityProviderInstance{
 		btcPk:           bbntypes.NewBIP340PubKeyFromBTCPK(sfp.BtcPk),
@@ -100,6 +111,9 @@ func newFinalityProviderInstanceFromStore(
 		em:              em,
 		cc:              cc,
 		metrics:         metrics,
+		opClient:        opClient,
+		sRStore:         sRStore,
+		eP:              eP,
 	}, nil
 }
 
@@ -122,7 +136,10 @@ func (fp *FinalityProviderInstance) Start() error {
 	fp.logger.Info("starting the finality provider",
 		zap.String("pk", fp.GetBtcPkHex()), zap.Uint64("height", startHeight))
 
-	poller := NewChainPoller(fp.logger, fp.cfg.PollerConfig, fp.cc, fp.metrics)
+	poller, err := NewOpChainPoller(fp.logger, fp.opClient, fp.cfg.OpEventConfig, fp.sRStore, fp.eP, fp.metrics)
+	if err != nil {
+		return fmt.Errorf("failed to new op chain poller: %w", err)
+	}
 
 	if err := poller.Start(startHeight); err != nil {
 		return fmt.Errorf("failed to start the poller with start height %d: %w", startHeight, err)

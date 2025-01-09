@@ -17,6 +17,7 @@ type BlockInfo struct {
 	Height    uint64
 	Hash      []byte
 	Finalized bool
+	StateRoot
 }
 
 type StateRoot struct {

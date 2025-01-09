@@ -1,7 +1,10 @@
 package service
 
 import (
+	"context"
 	"fmt"
+	"github.com/dapplink-labs/bbn-fp-l2/ethereum/node"
+	"github.com/dapplink-labs/bbn-fp-l2/l2chain/opstack"
 	"strings"
 	"sync"
 
@@ -41,6 +44,10 @@ type FinalityProviderApp struct {
 	config       *fpcfg.Config
 	logger       *zap.Logger
 	input        *strings.Reader
+
+	opClient node.EthClient
+	sRStore  *store.OpStateRootStore
+	eP       *opstack.EventProvider
 
 	fpIns       *FinalityProviderInstance
 	eotsManager eotsmanager.EOTSManager
@@ -102,6 +109,21 @@ func NewFinalityProviderApp(
 
 	fpMetrics := metrics.NewFpMetrics()
 
+	opClient, err := node.DialEthClient(context.Background(), config.OpEventConfig.EthRpc)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create op client: %w", err)
+	}
+
+	sRStore, err := store.NewOpStateRootStore(db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initiate op state root store: %w", err)
+	}
+
+	ep, err := opstack.NewEventProvider(context.Background(), logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initiate op event provider: %w", err)
+	}
+
 	return &FinalityProviderApp{
 		cc:                                cc,
 		fps:                               fpStore,
@@ -112,6 +134,9 @@ func NewFinalityProviderApp(
 		input:                             input,
 		fpIns:                             nil,
 		eotsManager:                       em,
+		opClient:                          opClient,
+		sRStore:                           sRStore,
+		eP:                                ep,
 		metrics:                           fpMetrics,
 		quit:                              make(chan struct{}),
 		unjailFinalityProviderRequestChan: make(chan *UnjailFinalityProviderRequest),
@@ -466,7 +491,8 @@ func (app *FinalityProviderApp) startFinalityProviderInstance(
 	if app.fpIns == nil {
 		fpIns, err := NewFinalityProviderInstance(
 			pk, app.config, app.fps, app.pubRandStore, app.cc, app.eotsManager,
-			app.metrics, passphrase, app.criticalErrChan, app.logger,
+			app.metrics, passphrase, app.criticalErrChan, app.logger, app.opClient,
+			app.sRStore, app.eP,
 		)
 		if err != nil {
 			return fmt.Errorf("failed to create finality provider instance %s: %w", pkHex, err)

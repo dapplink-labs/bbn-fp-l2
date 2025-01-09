@@ -34,6 +34,7 @@ type OpChainPoller struct {
 	latestBlock    *big.Int
 	blockTraversal *node.BlockTraversal
 	eventProvider  *opstack.EventProvider
+	blockInfoChan  chan *types.BlockInfo
 
 	metrics *metrics.FpMetrics
 	quit    chan struct{}
@@ -69,6 +70,7 @@ func NewOpChainPoller(logger *zap.Logger, opClient node.EthClient, cfg *cfg.OpEv
 		latestBlock:    fromBlock,
 		blockTraversal: blockTraversal,
 		eventProvider:  eventProvider,
+		blockInfoChan:  make(chan *types.BlockInfo, cfg.BufferSize),
 		metrics:        metrics,
 		quit:           make(chan struct{}),
 	}, nil
@@ -102,6 +104,10 @@ func (ocp *OpChainPoller) Stop() error {
 	ocp.logger.Info("the op chain poller is successfully stopped")
 
 	return nil
+}
+
+func (ocp *OpChainPoller) GetBlockInfoChan() <-chan *types.BlockInfo {
+	return ocp.blockInfoChan
 }
 
 func (ocp *OpChainPoller) opPollChain() {
@@ -188,6 +194,12 @@ func (ocp *OpChainPoller) processBatch(headers []ctypes.Header, chainCfg *cfg.Op
 		}
 		log.Info("event list", "stateroot", stateRootEvent.StateRoot)
 		// todo: add it to babylon cc
+		ocp.blockInfoChan <- &types.BlockInfo{
+			Height:    logs.Logs[i].BlockNumber,
+			Hash:      logs.Logs[i].BlockHash.Bytes(),
+			Finalized: false,
+			StateRoot: *stateRootEvent,
+		}
 	}
 
 	return nil

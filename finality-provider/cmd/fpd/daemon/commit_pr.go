@@ -1,7 +1,10 @@
 package daemon
 
 import (
+	"context"
 	"fmt"
+	"github.com/dapplink-labs/bbn-fp-l2/ethereum/node"
+	"github.com/dapplink-labs/bbn-fp-l2/l2chain/opstack"
 	"math"
 	"path/filepath"
 	"strconv"
@@ -88,10 +91,23 @@ func runCommandCommitPubRand(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create EOTS manager client: %w", err)
 	}
+	opClient, err := node.DialEthClient(context.Background(), cfg.OpEventConfig.EthRpc)
+	if err != nil {
+		return fmt.Errorf("failed to create op client: %w", err)
+	}
+	sRStore, err := store.NewOpStateRootStore(db)
+	if err != nil {
+		return fmt.Errorf("failed to initiate op state root store: %w", err)
+	}
+
+	ep, err := opstack.NewEventProvider(context.Background(), logger)
+	if err != nil {
+		return fmt.Errorf("failed to initiate op event provider: %w", err)
+	}
 
 	fp, err := service.NewFinalityProviderInstance(
 		fpPk, cfg, fpStore, pubRandStore, cc, em, metrics.NewFpMetrics(), "",
-		make(chan<- *service.CriticalError), logger)
+		make(chan<- *service.CriticalError), logger, opClient, sRStore, ep)
 	if err != nil {
 		return fmt.Errorf("failed to create finality-provider %s instance: %w", fpPk.MarshalHex(), err)
 	}

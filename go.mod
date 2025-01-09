@@ -4,6 +4,8 @@ go 1.23.1
 
 toolchain go1.23.3
 
+replace github.com/btcsuite/btcd/btcec/v2 => github.com/btcsuite/btcd/btcec/v2 v2.3.2
+
 require (
 	cosmossdk.io/errors v1.0.1
 	cosmossdk.io/math v1.4.0
@@ -21,6 +23,7 @@ require (
 	github.com/cosmos/relayer/v2 v2.5.2
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0
 	github.com/ethereum-optimism/optimism v1.10.0
+	github.com/ethereum/go-ethereum v1.14.12
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/mock v1.6.0
 	github.com/jessevdk/go-flags v1.5.0
@@ -128,9 +131,8 @@ require (
 	github.com/dvsekhvalnov/jose2go v1.6.0 // indirect
 	github.com/emicklei/dot v1.6.1 // indirect
 	github.com/ethereum-optimism/go-ethereum-hdwallet v0.1.3 // indirect
-	github.com/ethereum-optimism/superchain-registry/superchain v0.0.0-20241119111730-bee358f6d6e6 // indirect
+	github.com/ethereum-optimism/superchain-registry/superchain v0.0.0-20241213092551-33a63fce8214 // indirect
 	github.com/ethereum/c-kzg-4844 v1.0.0 // indirect
-	github.com/ethereum/go-ethereum v1.14.11 // indirect
 	github.com/ethereum/go-verkle v0.1.1-0.20240829091221-dffa7562dbe9 // indirect
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
@@ -353,3 +355,5 @@ replace (
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	google.golang.org/grpc => google.golang.org/grpc v1.63.2
 )
+
+replace github.com/ethereum/go-ethereum => github.com/ethereum-optimism/op-geth v1.101411.3
