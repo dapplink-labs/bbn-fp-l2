@@ -7,15 +7,15 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/dapplink-labs/bbn-fp-l2/metrics"
+	"github.com/Manta-Network/manta-fp/metrics"
 
 	"github.com/lightningnetwork/lnd/kvdb"
 	"github.com/lightningnetwork/lnd/signal"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
-	"github.com/dapplink-labs/bbn-fp-l2/eotsmanager"
-	"github.com/dapplink-labs/bbn-fp-l2/eotsmanager/config"
+	"github.com/Manta-Network/manta-fp/eotsmanager"
+	"github.com/Manta-Network/manta-fp/eotsmanager/config"
 )
 
 // Server is the main daemon construct for the EOTS manager server. It handles

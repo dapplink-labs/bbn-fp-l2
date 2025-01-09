@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/proto"
+	"github.com/Manta-Network/manta-fp/finality-provider/proto"
 
 	sdkErr "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -28,8 +28,8 @@ import (
 	"go.uber.org/zap"
 	protobuf "google.golang.org/protobuf/proto"
 
-	fpcfg "github.com/dapplink-labs/bbn-fp-l2/finality-provider/config"
-	"github.com/dapplink-labs/bbn-fp-l2/types"
+	fpcfg "github.com/Manta-Network/manta-fp/finality-provider/config"
+	"github.com/Manta-Network/manta-fp/types"
 )
 
 var _ ClientController = &BabylonController{}

@@ -6,8 +6,8 @@ import (
 	"github.com/jessevdk/go-flags"
 	"github.com/spf13/cobra"
 
-	eotscfg "github.com/dapplink-labs/bbn-fp-l2/eotsmanager/config"
-	"github.com/dapplink-labs/bbn-fp-l2/util"
+	eotscfg "github.com/Manta-Network/manta-fp/eotsmanager/config"
+	"github.com/Manta-Network/manta-fp/util"
 )
 
 func NewInitCmd() *cobra.Command {

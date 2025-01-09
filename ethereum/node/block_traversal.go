@@ -8,7 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
 
-	"github.com/dapplink-labs/bbn-fp-l2/ethereum/bigint"
+	"github.com/Manta-Network/manta-fp/ethereum/bigint"
 )
 
 var (

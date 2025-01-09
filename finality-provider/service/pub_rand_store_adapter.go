@@ -1,9 +1,9 @@
 package service
 
 import (
+	"github.com/Manta-Network/manta-fp/finality-provider/store"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/cometbft/cometbft/crypto/merkle"
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/store"
 )
 
 type pubRandState struct {

@@ -12,11 +12,11 @@ import (
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 
-	fpcmd "github.com/dapplink-labs/bbn-fp-l2/finality-provider/cmd"
-	fpcfg "github.com/dapplink-labs/bbn-fp-l2/finality-provider/config"
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/service"
-	"github.com/dapplink-labs/bbn-fp-l2/log"
-	"github.com/dapplink-labs/bbn-fp-l2/util"
+	fpcmd "github.com/Manta-Network/manta-fp/finality-provider/cmd"
+	fpcfg "github.com/Manta-Network/manta-fp/finality-provider/config"
+	"github.com/Manta-Network/manta-fp/finality-provider/service"
+	"github.com/Manta-Network/manta-fp/log"
+	"github.com/Manta-Network/manta-fp/util"
 )
 
 // CommandStart returns the start command of fpd daemon.

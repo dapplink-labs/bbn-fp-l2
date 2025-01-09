@@ -4,7 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/spf13/cobra"
 
-	"github.com/dapplink-labs/bbn-fp-l2/util"
+	"github.com/Manta-Network/manta-fp/util"
 )
 
 // CommandKeys returns the keys group command and updates the add command to do a

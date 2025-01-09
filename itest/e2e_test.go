@@ -20,8 +20,8 @@ import (
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/stretchr/testify/require"
 
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/cmd/fpd/daemon"
-	"github.com/dapplink-labs/bbn-fp-l2/types"
+	"github.com/Manta-Network/manta-fp/finality-provider/cmd/fpd/daemon"
+	"github.com/Manta-Network/manta-fp/types"
 )
 
 var (

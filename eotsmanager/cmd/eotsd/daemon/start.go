@@ -8,10 +8,10 @@ import (
 	"github.com/lightningnetwork/lnd/signal"
 	"github.com/spf13/cobra"
 
-	"github.com/dapplink-labs/bbn-fp-l2/eotsmanager"
-	"github.com/dapplink-labs/bbn-fp-l2/eotsmanager/config"
-	eotsservice "github.com/dapplink-labs/bbn-fp-l2/eotsmanager/service"
-	"github.com/dapplink-labs/bbn-fp-l2/log"
+	"github.com/Manta-Network/manta-fp/eotsmanager"
+	"github.com/Manta-Network/manta-fp/eotsmanager/config"
+	eotsservice "github.com/Manta-Network/manta-fp/eotsmanager/service"
+	"github.com/Manta-Network/manta-fp/log"
 )
 
 func NewStartCmd() *cobra.Command {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/dapplink-labs/bbn-fp-l2/eotsmanager/cmd/eotsd/daemon"
+	"github.com/Manta-Network/manta-fp/eotsmanager/cmd/eotsd/daemon"
 )
 
 func main() {

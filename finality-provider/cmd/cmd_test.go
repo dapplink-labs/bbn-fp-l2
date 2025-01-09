@@ -11,10 +11,10 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"
 
+	fpcmd "github.com/Manta-Network/manta-fp/finality-provider/cmd"
+	fpcfg "github.com/Manta-Network/manta-fp/finality-provider/config"
+	"github.com/Manta-Network/manta-fp/util"
 	"github.com/babylonlabs-io/babylon/testutil/datagen"
-	fpcmd "github.com/dapplink-labs/bbn-fp-l2/finality-provider/cmd"
-	fpcfg "github.com/dapplink-labs/bbn-fp-l2/finality-provider/config"
-	"github.com/dapplink-labs/bbn-fp-l2/util"
 	goflags "github.com/jessevdk/go-flags"
 )
 

@@ -12,7 +12,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"go.uber.org/zap"
 
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/proto"
+	"github.com/Manta-Network/manta-fp/finality-provider/proto"
 )
 
 type CreateFinalityProviderRequest struct {

@@ -6,8 +6,8 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/proto"
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/store"
+	"github.com/Manta-Network/manta-fp/finality-provider/proto"
+	"github.com/Manta-Network/manta-fp/finality-provider/store"
 )
 
 type FpMetrics struct {

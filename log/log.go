@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dapplink-labs/bbn-fp-l2/util"
+	"github.com/Manta-Network/manta-fp/util"
 
 	zaplogfmt "github.com/jsternberg/zap-logfmt"
 	"go.uber.org/zap"

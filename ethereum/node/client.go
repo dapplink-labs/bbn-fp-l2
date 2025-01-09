@@ -17,7 +17,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rpc"
 
-	retry2 "github.com/dapplink-labs/bbn-fp-l2/ethereum/retry"
+	retry2 "github.com/Manta-Network/manta-fp/ethereum/retry"
 )
 
 const (

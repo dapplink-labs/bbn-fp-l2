@@ -18,17 +18,17 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 
-	"github.com/dapplink-labs/bbn-fp-l2/clientcontroller"
-	"github.com/dapplink-labs/bbn-fp-l2/eotsmanager"
-	eotscfg "github.com/dapplink-labs/bbn-fp-l2/eotsmanager/config"
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/config"
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/proto"
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/service"
-	fpstore "github.com/dapplink-labs/bbn-fp-l2/finality-provider/store"
-	"github.com/dapplink-labs/bbn-fp-l2/keyring"
-	"github.com/dapplink-labs/bbn-fp-l2/testutil"
-	"github.com/dapplink-labs/bbn-fp-l2/types"
-	"github.com/dapplink-labs/bbn-fp-l2/util"
+	"github.com/Manta-Network/manta-fp/clientcontroller"
+	"github.com/Manta-Network/manta-fp/eotsmanager"
+	eotscfg "github.com/Manta-Network/manta-fp/eotsmanager/config"
+	"github.com/Manta-Network/manta-fp/finality-provider/config"
+	"github.com/Manta-Network/manta-fp/finality-provider/proto"
+	"github.com/Manta-Network/manta-fp/finality-provider/service"
+	fpstore "github.com/Manta-Network/manta-fp/finality-provider/store"
+	"github.com/Manta-Network/manta-fp/keyring"
+	"github.com/Manta-Network/manta-fp/testutil"
+	"github.com/Manta-Network/manta-fp/types"
+	"github.com/Manta-Network/manta-fp/util"
 )
 
 const (

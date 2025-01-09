@@ -12,9 +12,9 @@ import (
 	"github.com/jessevdk/go-flags"
 	"go.uber.org/zap/zapcore"
 
-	eotscfg "github.com/dapplink-labs/bbn-fp-l2/eotsmanager/config"
-	"github.com/dapplink-labs/bbn-fp-l2/metrics"
-	"github.com/dapplink-labs/bbn-fp-l2/util"
+	eotscfg "github.com/Manta-Network/manta-fp/eotsmanager/config"
+	"github.com/Manta-Network/manta-fp/metrics"
+	"github.com/Manta-Network/manta-fp/util"
 )
 
 const (

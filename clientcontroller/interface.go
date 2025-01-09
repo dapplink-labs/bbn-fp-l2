@@ -12,8 +12,8 @@ import (
 
 	finalitytypes "github.com/babylonlabs-io/babylon/x/finality/types"
 
-	fpcfg "github.com/dapplink-labs/bbn-fp-l2/finality-provider/config"
-	"github.com/dapplink-labs/bbn-fp-l2/types"
+	fpcfg "github.com/Manta-Network/manta-fp/finality-provider/config"
+	"github.com/Manta-Network/manta-fp/types"
 )
 
 const (

@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/std"
 	"github.com/spf13/cobra"
 
-	"github.com/dapplink-labs/bbn-fp-l2/util"
+	"github.com/Manta-Network/manta-fp/util"
 )
 
 func getHomePath(cmd *cobra.Command) (string, error) {

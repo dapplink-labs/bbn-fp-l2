@@ -15,11 +15,11 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/store"
-	fpkr "github.com/dapplink-labs/bbn-fp-l2/keyring"
+	"github.com/Manta-Network/manta-fp/finality-provider/store"
+	fpkr "github.com/Manta-Network/manta-fp/keyring"
 
-	"github.com/dapplink-labs/bbn-fp-l2/codec"
-	"github.com/dapplink-labs/bbn-fp-l2/types"
+	"github.com/Manta-Network/manta-fp/codec"
+	"github.com/Manta-Network/manta-fp/types"
 )
 
 func GenRandomByteArray(r *rand.Rand, length uint64) []byte {

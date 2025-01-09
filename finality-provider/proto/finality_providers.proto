@@ -6,7 +6,7 @@ import "gogoproto/gogo.proto";
 import "cosmos/staking/v1beta1/staking.proto";
 import "cosmos_proto/cosmos.proto";
 
-option go_package = "github.com/dapplink-labs/bbn-fp-l2/finality-provider/proto";
+option go_package = "github.com/Manta-Network/manta-fp/finality-provider/proto";
 
 service FinalityProviders {
     // GetInfo returns the information of the daemon

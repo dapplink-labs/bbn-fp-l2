@@ -13,12 +13,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/stretchr/testify/require"
 
-	eotscfg "github.com/dapplink-labs/bbn-fp-l2/eotsmanager/config"
+	eotscfg "github.com/Manta-Network/manta-fp/eotsmanager/config"
 
-	fpkr "github.com/dapplink-labs/bbn-fp-l2/keyring"
+	fpkr "github.com/Manta-Network/manta-fp/keyring"
 
-	"github.com/dapplink-labs/bbn-fp-l2/eotsmanager"
-	"github.com/dapplink-labs/bbn-fp-l2/testutil"
+	"github.com/Manta-Network/manta-fp/eotsmanager"
+	"github.com/Manta-Network/manta-fp/testutil"
 )
 
 var (

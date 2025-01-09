@@ -12,8 +12,8 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
-	fpcfg "github.com/dapplink-labs/bbn-fp-l2/finality-provider/config"
-	"github.com/dapplink-labs/bbn-fp-l2/metrics"
+	fpcfg "github.com/Manta-Network/manta-fp/finality-provider/config"
+	"github.com/Manta-Network/manta-fp/metrics"
 )
 
 // Server is the main daemon construct for the Finality Provider server. It handles

@@ -9,9 +9,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/dapplink-labs/bbn-fp-l2/eotsmanager"
-	"github.com/dapplink-labs/bbn-fp-l2/eotsmanager/proto"
-	"github.com/dapplink-labs/bbn-fp-l2/eotsmanager/types"
+	"github.com/Manta-Network/manta-fp/eotsmanager"
+	"github.com/Manta-Network/manta-fp/eotsmanager/proto"
+	"github.com/Manta-Network/manta-fp/eotsmanager/types"
 )
 
 var _ eotsmanager.EOTSManager = &EOTSManagerGRpcClient{}

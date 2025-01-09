@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package proto;
 
-option go_package = "github.com/dapplink-labs/bbn-fp-l2/eotsmanager/proto";
+option go_package = "github.com/Manta-Network/manta-fp/eotsmanager/proto";
 
 service EOTSManager {
   rpc Ping (PingRequest) returns (PingResponse);

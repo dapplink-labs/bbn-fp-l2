@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 
-	"github.com/dapplink-labs/bbn-fp-l2/codec"
+	"github.com/Manta-Network/manta-fp/codec"
 )
 
 func CreateKeyring(keyringDir string, chainID string, backend string, input *strings.Reader) (keyring.Keyring, error) {

@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/dapplink-labs/bbn-fp-l2/ethereum/node"
-	"github.com/dapplink-labs/bbn-fp-l2/l2chain/opstack"
+	"github.com/Manta-Network/manta-fp/ethereum/node"
+	"github.com/Manta-Network/manta-fp/l2chain/opstack"
 	"strings"
 	"sync"
 
@@ -20,15 +20,15 @@ import (
 	"github.com/lightningnetwork/lnd/kvdb"
 	"go.uber.org/zap"
 
-	"github.com/dapplink-labs/bbn-fp-l2/clientcontroller"
-	"github.com/dapplink-labs/bbn-fp-l2/eotsmanager"
-	"github.com/dapplink-labs/bbn-fp-l2/eotsmanager/client"
-	fpcfg "github.com/dapplink-labs/bbn-fp-l2/finality-provider/config"
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/proto"
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/store"
-	fpkr "github.com/dapplink-labs/bbn-fp-l2/keyring"
-	"github.com/dapplink-labs/bbn-fp-l2/metrics"
-	"github.com/dapplink-labs/bbn-fp-l2/types"
+	"github.com/Manta-Network/manta-fp/clientcontroller"
+	"github.com/Manta-Network/manta-fp/eotsmanager"
+	"github.com/Manta-Network/manta-fp/eotsmanager/client"
+	fpcfg "github.com/Manta-Network/manta-fp/finality-provider/config"
+	"github.com/Manta-Network/manta-fp/finality-provider/proto"
+	"github.com/Manta-Network/manta-fp/finality-provider/store"
+	fpkr "github.com/Manta-Network/manta-fp/keyring"
+	"github.com/Manta-Network/manta-fp/metrics"
+	"github.com/Manta-Network/manta-fp/types"
 )
 
 type FinalityProviderApp struct {

@@ -9,9 +9,9 @@ import (
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	"github.com/stretchr/testify/require"
 
-	"github.com/dapplink-labs/bbn-fp-l2/eotsmanager/config"
-	"github.com/dapplink-labs/bbn-fp-l2/eotsmanager/store"
-	"github.com/dapplink-labs/bbn-fp-l2/testutil"
+	"github.com/Manta-Network/manta-fp/eotsmanager/config"
+	"github.com/Manta-Network/manta-fp/eotsmanager/store"
+	"github.com/Manta-Network/manta-fp/testutil"
 )
 
 // FuzzEOTSStore tests save and show EOTS key names properly

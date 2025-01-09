@@ -1,5 +1,5 @@
 version: v1
-name: buf.build/dapplink-labs/bbn-fp-l2
+name: buf.build/Manta-Network/manta-fp
 deps:
   - buf.build/cosmos/cosmos-sdk:v0.50.0
   - buf.build/cosmos/cosmos-proto:1935555c206d4afb9e94615dfd0fad31

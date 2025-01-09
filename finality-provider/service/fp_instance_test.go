@@ -15,15 +15,15 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 
-	"github.com/dapplink-labs/bbn-fp-l2/clientcontroller"
-	"github.com/dapplink-labs/bbn-fp-l2/eotsmanager"
-	eotscfg "github.com/dapplink-labs/bbn-fp-l2/eotsmanager/config"
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/config"
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/service"
-	fpkr "github.com/dapplink-labs/bbn-fp-l2/keyring"
-	"github.com/dapplink-labs/bbn-fp-l2/metrics"
-	"github.com/dapplink-labs/bbn-fp-l2/testutil"
-	"github.com/dapplink-labs/bbn-fp-l2/types"
+	"github.com/Manta-Network/manta-fp/clientcontroller"
+	"github.com/Manta-Network/manta-fp/eotsmanager"
+	eotscfg "github.com/Manta-Network/manta-fp/eotsmanager/config"
+	"github.com/Manta-Network/manta-fp/finality-provider/config"
+	"github.com/Manta-Network/manta-fp/finality-provider/service"
+	fpkr "github.com/Manta-Network/manta-fp/keyring"
+	"github.com/Manta-Network/manta-fp/metrics"
+	"github.com/Manta-Network/manta-fp/testutil"
+	"github.com/Manta-Network/manta-fp/types"
 )
 
 func FuzzCommitPubRandList(f *testing.F) {

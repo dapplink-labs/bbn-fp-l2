@@ -1,12 +1,12 @@
 package daemon
 
 import (
+	"github.com/Manta-Network/manta-fp/version"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdkflags "github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/dapplink-labs/bbn-fp-l2/version"
 	"github.com/spf13/cobra"
 
-	"github.com/dapplink-labs/bbn-fp-l2/eotsmanager/config"
+	"github.com/Manta-Network/manta-fp/eotsmanager/config"
 )
 
 // NewRootCmd creates a new root command for fpd. It is called once in the main function.

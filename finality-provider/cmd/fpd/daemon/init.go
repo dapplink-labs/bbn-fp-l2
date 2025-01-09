@@ -8,9 +8,9 @@ import (
 	"github.com/jessevdk/go-flags"
 	"github.com/spf13/cobra"
 
-	fpcmd "github.com/dapplink-labs/bbn-fp-l2/finality-provider/cmd"
-	fpcfg "github.com/dapplink-labs/bbn-fp-l2/finality-provider/config"
-	"github.com/dapplink-labs/bbn-fp-l2/util"
+	fpcmd "github.com/Manta-Network/manta-fp/finality-provider/cmd"
+	fpcfg "github.com/Manta-Network/manta-fp/finality-provider/config"
+	"github.com/Manta-Network/manta-fp/util"
 )
 
 // CommandInit returns the init command of fpd daemon that starts the config dir.

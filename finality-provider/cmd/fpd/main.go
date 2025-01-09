@@ -9,10 +9,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
 
-	fpcmd "github.com/dapplink-labs/bbn-fp-l2/finality-provider/cmd"
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/cmd/fpd/daemon"
-	fpcfg "github.com/dapplink-labs/bbn-fp-l2/finality-provider/config"
-	"github.com/dapplink-labs/bbn-fp-l2/version"
+	fpcmd "github.com/Manta-Network/manta-fp/finality-provider/cmd"
+	"github.com/Manta-Network/manta-fp/finality-provider/cmd/fpd/daemon"
+	fpcfg "github.com/Manta-Network/manta-fp/finality-provider/config"
+	"github.com/Manta-Network/manta-fp/version"
 )
 
 // NewRootCmd creates a new root command for fpd. It is called once in the main function.

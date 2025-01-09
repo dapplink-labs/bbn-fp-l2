@@ -10,12 +10,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 
-	fpcfg "github.com/dapplink-labs/bbn-fp-l2/finality-provider/config"
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/service"
-	"github.com/dapplink-labs/bbn-fp-l2/metrics"
-	"github.com/dapplink-labs/bbn-fp-l2/testutil"
-	"github.com/dapplink-labs/bbn-fp-l2/testutil/mocks"
-	"github.com/dapplink-labs/bbn-fp-l2/types"
+	fpcfg "github.com/Manta-Network/manta-fp/finality-provider/config"
+	"github.com/Manta-Network/manta-fp/finality-provider/service"
+	"github.com/Manta-Network/manta-fp/metrics"
+	"github.com/Manta-Network/manta-fp/testutil"
+	"github.com/Manta-Network/manta-fp/testutil/mocks"
+	"github.com/Manta-Network/manta-fp/types"
 )
 
 // FuzzChainPoller_Start tests the poller polling blocks

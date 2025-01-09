@@ -4,7 +4,7 @@ import (
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 
-	"github.com/dapplink-labs/bbn-fp-l2/eotsmanager/types"
+	"github.com/Manta-Network/manta-fp/eotsmanager/types"
 )
 
 type EOTSManager interface {

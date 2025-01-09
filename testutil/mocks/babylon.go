@@ -10,7 +10,7 @@ import (
 	math "cosmossdk.io/math"
 	types "github.com/babylonlabs-io/babylon/x/btcstaking/types"
 	types0 "github.com/babylonlabs-io/babylon/x/finality/types"
-	types1 "github.com/dapplink-labs/bbn-fp-l2/types"
+	types1 "github.com/Manta-Network/manta-fp/types"
 	btcec "github.com/btcsuite/btcd/btcec/v2"
 	schnorr "github.com/btcsuite/btcd/btcec/v2/schnorr"
 	gomock "github.com/golang/mock/gomock"

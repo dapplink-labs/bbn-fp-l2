@@ -13,8 +13,8 @@ import (
 	"github.com/lightningnetwork/lnd/signal"
 	"github.com/ory/dockertest/v3"
 
-	"github.com/dapplink-labs/bbn-fp-l2/itest/container"
-	"github.com/dapplink-labs/bbn-fp-l2/testutil"
+	"github.com/Manta-Network/manta-fp/itest/container"
+	"github.com/Manta-Network/manta-fp/testutil"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/babylonlabs-io/babylon/btcstaking"
@@ -36,12 +36,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 
-	fpcc "github.com/dapplink-labs/bbn-fp-l2/clientcontroller"
-	"github.com/dapplink-labs/bbn-fp-l2/eotsmanager/client"
-	eotsconfig "github.com/dapplink-labs/bbn-fp-l2/eotsmanager/config"
-	fpcfg "github.com/dapplink-labs/bbn-fp-l2/finality-provider/config"
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/service"
-	"github.com/dapplink-labs/bbn-fp-l2/types"
+	fpcc "github.com/Manta-Network/manta-fp/clientcontroller"
+	"github.com/Manta-Network/manta-fp/eotsmanager/client"
+	eotsconfig "github.com/Manta-Network/manta-fp/eotsmanager/config"
+	fpcfg "github.com/Manta-Network/manta-fp/finality-provider/config"
+	"github.com/Manta-Network/manta-fp/finality-provider/service"
+	"github.com/Manta-Network/manta-fp/types"
 )
 
 var (

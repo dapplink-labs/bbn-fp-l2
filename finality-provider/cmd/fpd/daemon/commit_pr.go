@@ -3,23 +3,25 @@ package daemon
 import (
 	"context"
 	"fmt"
-	"github.com/dapplink-labs/bbn-fp-l2/ethereum/node"
-	"github.com/dapplink-labs/bbn-fp-l2/l2chain/opstack"
+
 	"math"
 	"path/filepath"
 	"strconv"
 
 	bbntypes "github.com/babylonlabs-io/babylon/types"
 	"github.com/cosmos/cosmos-sdk/client"
-	fpcc "github.com/dapplink-labs/bbn-fp-l2/clientcontroller"
-	eotsclient "github.com/dapplink-labs/bbn-fp-l2/eotsmanager/client"
-	fpcfg "github.com/dapplink-labs/bbn-fp-l2/finality-provider/config"
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/service"
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/store"
-	"github.com/dapplink-labs/bbn-fp-l2/log"
-	"github.com/dapplink-labs/bbn-fp-l2/metrics"
-	"github.com/dapplink-labs/bbn-fp-l2/util"
 	"github.com/spf13/cobra"
+
+	fpcc "github.com/Manta-Network/manta-fp/clientcontroller"
+	eotsclient "github.com/Manta-Network/manta-fp/eotsmanager/client"
+	"github.com/Manta-Network/manta-fp/ethereum/node"
+	fpcfg "github.com/Manta-Network/manta-fp/finality-provider/config"
+	"github.com/Manta-Network/manta-fp/finality-provider/service"
+	"github.com/Manta-Network/manta-fp/finality-provider/store"
+	"github.com/Manta-Network/manta-fp/l2chain/opstack"
+	"github.com/Manta-Network/manta-fp/log"
+	"github.com/Manta-Network/manta-fp/metrics"
+	"github.com/Manta-Network/manta-fp/util"
 )
 
 // CommandCommitPubRand returns the commit-pubrand command

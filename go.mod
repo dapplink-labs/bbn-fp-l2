@@ -1,10 +1,8 @@
-module github.com/dapplink-labs/bbn-fp-l2
+module github.com/Manta-Network/manta-fp
 
 go 1.23.1
 
 toolchain go1.23.3
-
-replace github.com/btcsuite/btcd/btcec/v2 => github.com/btcsuite/btcd/btcec/v2 v2.3.2
 
 require (
 	cosmossdk.io/errors v1.0.1
@@ -354,6 +352,7 @@ replace (
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	google.golang.org/grpc => google.golang.org/grpc v1.63.2
+	github.com/btcsuite/btcd/btcec/v2 => github.com/btcsuite/btcd/btcec/v2 v2.3.2
+	github.com/ethereum/go-ethereum => github.com/ethereum-optimism/op-geth v1.101411.3
 )
 
-replace github.com/ethereum/go-ethereum => github.com/ethereum-optimism/op-geth v1.101411.3

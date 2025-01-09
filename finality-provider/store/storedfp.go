@@ -9,7 +9,7 @@ import (
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/proto"
+	"github.com/Manta-Network/manta-fp/finality-provider/proto"
 )
 
 type StoredFinalityProvider struct {

@@ -2,7 +2,7 @@ package service
 
 import (
 	"fmt"
-	"github.com/dapplink-labs/bbn-fp-l2/types"
+	"github.com/Manta-Network/manta-fp/types"
 	"go.uber.org/zap"
 	"time"
 )

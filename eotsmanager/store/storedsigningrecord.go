@@ -3,7 +3,7 @@ package store
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/dapplink-labs/bbn-fp-l2/eotsmanager/proto"
+	"github.com/Manta-Network/manta-fp/eotsmanager/proto"
 )
 
 type SigningRecord struct {

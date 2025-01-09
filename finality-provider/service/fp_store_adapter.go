@@ -7,8 +7,8 @@ import (
 	"github.com/btcsuite/btcd/btcec/v2"
 	"go.uber.org/zap"
 
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/proto"
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/store"
+	"github.com/Manta-Network/manta-fp/finality-provider/proto"
+	"github.com/Manta-Network/manta-fp/finality-provider/store"
 )
 
 type fpState struct {

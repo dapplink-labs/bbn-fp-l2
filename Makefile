@@ -15,7 +15,7 @@ MOCKGEN_CMD=go run ${MOCKGEN_REPO}@${MOCKGEN_VERSION}
 
 VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
 
-ldflags := $(LDFLAGS) -X github.com/dapplink-labs/bbn-fp-l2/version.version=$(VERSION)
+ldflags := $(LDFLAGS) -X github.com/Manta-Network/manta-fp/version.version=$(VERSION)
 build_tags := $(BUILD_TAGS)
 build_args := $(BUILD_ARGS)
 
@@ -51,7 +51,7 @@ $(BUILDDIR)/:
 	mkdir -p $(BUILDDIR)/
 
 build-docker:
-	$(DOCKER) build --tag dapplink-labs/bbn-fp-l2 -f Dockerfile \
+	$(DOCKER) build --tag Manta-Network/manta-fp -f Dockerfile \
 		$(shell git rev-parse --show-toplevel)
 
 .PHONY: build build-docker

@@ -13,9 +13,9 @@ import (
 	"google.golang.org/grpc"
 	protobuf "google.golang.org/protobuf/proto"
 
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/proto"
-	"github.com/dapplink-labs/bbn-fp-l2/types"
-	"github.com/dapplink-labs/bbn-fp-l2/version"
+	"github.com/Manta-Network/manta-fp/finality-provider/proto"
+	"github.com/Manta-Network/manta-fp/types"
+	"github.com/Manta-Network/manta-fp/version"
 )
 
 // rpcServer is the main RPC server for the Finality Provider daemon that handles

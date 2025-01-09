@@ -3,12 +3,12 @@ package service
 import (
 	"fmt"
 
+	"github.com/Manta-Network/manta-fp/types"
 	bbntypes "github.com/babylonlabs-io/babylon/types"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dapplink-labs/bbn-fp-l2/types"
 )
 
 func (fp *FinalityProviderInstance) getPubRandList(startHeight uint64, numPubRand uint32) ([]*btcec.FieldVal, error) {

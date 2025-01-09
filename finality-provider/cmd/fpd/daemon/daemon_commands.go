@@ -17,11 +17,11 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/proto"
+	"github.com/Manta-Network/manta-fp/finality-provider/proto"
 
-	fpcmd "github.com/dapplink-labs/bbn-fp-l2/finality-provider/cmd"
-	fpcfg "github.com/dapplink-labs/bbn-fp-l2/finality-provider/config"
-	dc "github.com/dapplink-labs/bbn-fp-l2/finality-provider/service/client"
+	fpcmd "github.com/Manta-Network/manta-fp/finality-provider/cmd"
+	fpcfg "github.com/Manta-Network/manta-fp/finality-provider/config"
+	dc "github.com/Manta-Network/manta-fp/finality-provider/service/client"
 )
 
 var (

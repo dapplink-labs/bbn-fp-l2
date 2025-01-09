@@ -7,7 +7,7 @@ import (
 
 	pm "google.golang.org/protobuf/proto"
 
-	"github.com/dapplink-labs/bbn-fp-l2/eotsmanager/proto"
+	"github.com/Manta-Network/manta-fp/eotsmanager/proto"
 
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"

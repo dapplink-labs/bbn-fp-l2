@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	fpcfg "github.com/dapplink-labs/bbn-fp-l2/finality-provider/config"
+	fpcfg "github.com/Manta-Network/manta-fp/finality-provider/config"
 )
 
 // PersistClientCtx persist some vars from the cmd or config to the client context.

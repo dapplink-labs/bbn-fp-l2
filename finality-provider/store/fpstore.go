@@ -12,7 +12,7 @@ import (
 	"github.com/lightningnetwork/lnd/kvdb"
 	pm "google.golang.org/protobuf/proto"
 
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/proto"
+	"github.com/Manta-Network/manta-fp/finality-provider/proto"
 )
 
 var (

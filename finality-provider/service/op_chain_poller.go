@@ -14,12 +14,12 @@ import (
 	ctypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
 
-	"github.com/dapplink-labs/bbn-fp-l2/ethereum/node"
-	cfg "github.com/dapplink-labs/bbn-fp-l2/finality-provider/config"
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/store"
-	"github.com/dapplink-labs/bbn-fp-l2/l2chain/opstack"
-	"github.com/dapplink-labs/bbn-fp-l2/metrics"
-	"github.com/dapplink-labs/bbn-fp-l2/types"
+	"github.com/Manta-Network/manta-fp/ethereum/node"
+	cfg "github.com/Manta-Network/manta-fp/finality-provider/config"
+	"github.com/Manta-Network/manta-fp/finality-provider/store"
+	"github.com/Manta-Network/manta-fp/l2chain/opstack"
+	"github.com/Manta-Network/manta-fp/metrics"
+	"github.com/Manta-Network/manta-fp/types"
 )
 
 type OpChainPoller struct {

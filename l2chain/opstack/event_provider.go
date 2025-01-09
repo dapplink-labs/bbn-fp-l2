@@ -10,7 +10,7 @@ import (
 
 	"github.com/ethereum-optimism/optimism/op-proposer/bindings"
 
-	"github.com/dapplink-labs/bbn-fp-l2/types"
+	"github.com/Manta-Network/manta-fp/types"
 )
 
 type EventProvider struct {

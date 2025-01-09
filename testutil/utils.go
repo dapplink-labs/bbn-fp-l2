@@ -7,8 +7,8 @@ import (
 	sdkmath "cosmossdk.io/math"
 	"github.com/golang/mock/gomock"
 
-	"github.com/dapplink-labs/bbn-fp-l2/testutil/mocks"
-	"github.com/dapplink-labs/bbn-fp-l2/types"
+	"github.com/Manta-Network/manta-fp/testutil/mocks"
+	"github.com/Manta-Network/manta-fp/types"
 )
 
 const TestPubRandNum = 25

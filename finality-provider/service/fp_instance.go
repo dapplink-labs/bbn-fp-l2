@@ -3,8 +3,6 @@ package service
 import (
 	"errors"
 	"fmt"
-	"github.com/dapplink-labs/bbn-fp-l2/ethereum/node"
-	"github.com/dapplink-labs/bbn-fp-l2/l2chain/opstack"
 	"math"
 	"strings"
 	"sync"
@@ -18,13 +16,15 @@ import (
 	"go.uber.org/atomic"
 	"go.uber.org/zap"
 
-	"github.com/dapplink-labs/bbn-fp-l2/clientcontroller"
-	"github.com/dapplink-labs/bbn-fp-l2/eotsmanager"
-	fpcfg "github.com/dapplink-labs/bbn-fp-l2/finality-provider/config"
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/proto"
-	"github.com/dapplink-labs/bbn-fp-l2/finality-provider/store"
-	"github.com/dapplink-labs/bbn-fp-l2/metrics"
-	"github.com/dapplink-labs/bbn-fp-l2/types"
+	"github.com/Manta-Network/manta-fp/clientcontroller"
+	"github.com/Manta-Network/manta-fp/eotsmanager"
+	"github.com/Manta-Network/manta-fp/ethereum/node"
+	fpcfg "github.com/Manta-Network/manta-fp/finality-provider/config"
+	"github.com/Manta-Network/manta-fp/finality-provider/proto"
+	"github.com/Manta-Network/manta-fp/finality-provider/store"
+	"github.com/Manta-Network/manta-fp/l2chain/opstack"
+	"github.com/Manta-Network/manta-fp/metrics"
+	"github.com/Manta-Network/manta-fp/types"
 )
 
 type FinalityProviderInstance struct {

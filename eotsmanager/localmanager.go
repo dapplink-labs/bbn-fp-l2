@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/dapplink-labs/bbn-fp-l2/metrics"
+	"github.com/Manta-Network/manta-fp/metrics"
 
 	"github.com/babylonlabs-io/babylon/crypto/eots"
 	bbntypes "github.com/babylonlabs-io/babylon/types"
@@ -19,10 +19,10 @@ import (
 	"github.com/lightningnetwork/lnd/kvdb"
 	"go.uber.org/zap"
 
-	"github.com/dapplink-labs/bbn-fp-l2/codec"
-	"github.com/dapplink-labs/bbn-fp-l2/eotsmanager/randgenerator"
-	"github.com/dapplink-labs/bbn-fp-l2/eotsmanager/store"
-	eotstypes "github.com/dapplink-labs/bbn-fp-l2/eotsmanager/types"
+	"github.com/Manta-Network/manta-fp/codec"
+	"github.com/Manta-Network/manta-fp/eotsmanager/randgenerator"
+	"github.com/Manta-Network/manta-fp/eotsmanager/store"
+	eotstypes "github.com/Manta-Network/manta-fp/eotsmanager/types"
 )
 
 const (
