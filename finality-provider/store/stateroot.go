@@ -13,6 +13,8 @@ import (
 )
 
 var (
+	ErrCorruptedLatestBlockrDb = errors.New("latest block manager db is corrupted")
+
 	ErrCorruptedBlockHeaderDb = errors.New("block header manager db is corrupted")
 
 	ErrDuplicateBlock = errors.New("block header key name already exists")
@@ -25,6 +27,8 @@ var (
 )
 
 var (
+	LatestBlock         = []byte("latestBlock")
+	LatestBlockKey      = []byte("latestBlockKey")
 	BlockHeaderName     = []byte("blockHeader")
 	StateRootBucketName = []byte("opStateRoot")
 )
@@ -43,7 +47,12 @@ func NewOpStateRootStore(db kvdb.Backend) (*OpStateRootStore, error) {
 
 func (s *OpStateRootStore) initBuckets() error {
 	return kvdb.Batch(s.db, func(tx kvdb.RwTx) error {
-		_, err := tx.CreateTopLevelBucket(BlockHeaderName)
+		_, err := tx.CreateTopLevelBucket(LatestBlock)
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.CreateTopLevelBucket(BlockHeaderName)
 		if err != nil {
 			return err
 		}
@@ -54,6 +63,43 @@ func (s *OpStateRootStore) initBuckets() error {
 		}
 		return nil
 	})
+}
+
+func (s *OpStateRootStore) AddLatestBlock(blockNumber *big.Int) error {
+	return kvdb.Batch(s.db, func(tx kvdb.RwTx) error {
+		latestBlockBucket := tx.ReadWriteBucket(LatestBlock)
+		if latestBlockBucket == nil {
+			return ErrCorruptedLatestBlockrDb
+		}
+
+		if latestBlockBucket.Get(LatestBlockKey) != nil {
+			return ErrDuplicateBlock
+		}
+
+		return latestBlockBucket.Put(LatestBlockKey, blockNumber.Bytes())
+	})
+}
+
+func (s *OpStateRootStore) GetLatestBlock() (*big.Int, error) {
+	var blockNumber *big.Int
+	err := s.db.View(func(tx kvdb.RTx) error {
+		blockNumberBucket := tx.ReadBucket(LatestBlock)
+		if blockNumberBucket == nil {
+			return ErrCorruptedLatestBlockrDb
+		}
+
+		blockByte := blockNumberBucket.Get(LatestBlockKey)
+		if blockByte == nil {
+			return ErrBlockNotFound
+		}
+		blockNumber = new(big.Int).SetBytes(blockByte)
+		return nil
+	}, func() {})
+
+	if err != nil {
+		return nil, err
+	}
+	return blockNumber, nil
 }
 
 func (s *OpStateRootStore) AddBlock(
