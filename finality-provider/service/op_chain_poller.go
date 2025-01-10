@@ -41,14 +41,14 @@ type OpChainPoller struct {
 }
 
 func NewOpChainPoller(logger *zap.Logger, opClient node.EthClient, cfg *cfg.OpEventConfig, stateRoot *store.OpStateRootStore, eventProvider *opstack.EventProvider, metrics *metrics.FpMetrics) (*OpChainPoller, error) {
-	dbLatestBlock, err := stateRoot.GetBlock(nil)
+	dbLatestBlock, err := stateRoot.GetLatestBlock()
 	if err != nil {
 		return nil, err
 	}
 	var fromBlock *big.Int
 	if dbLatestBlock != nil {
 		log.Info("sync detected last indexed block", "blockNumber", dbLatestBlock)
-		fromBlock = dbLatestBlock.Number
+		fromBlock = dbLatestBlock
 	} else if cfg.ScanStartHeight > 0 {
 		log.Info("no sync indexed state starting from supplied ethereum height", "height", cfg.ScanStartHeight)
 		header, err := opClient.BlockHeaderByNumber(big.NewInt(int64(cfg.ScanStartHeight)))
@@ -131,6 +131,11 @@ func (ocp *OpChainPoller) opPollChain() {
 				if latestBlock != nil {
 					log.Info("Latest header", "latestHeader Number", latestBlock)
 				}
+				err = ocp.stateRoot.AddLatestBlock(latestBlock)
+				if err != nil {
+					log.Error("Add latest block fail", "err", err)
+					return
+				}
 			}
 			err := ocp.processBatch(ocp.headers, ocp.cfg)
 			if err == nil {
@@ -193,7 +198,7 @@ func (ocp *OpChainPoller) processBatch(headers []ctypes.Header, chainCfg *cfg.Op
 			return err
 		}
 		log.Info("event list", "stateroot", stateRootEvent.StateRoot)
-		// todo: add it to babylon cc
+
 		ocp.blockInfoChan <- &types.BlockInfo{
 			Height:    logs.Logs[i].BlockNumber,
 			Hash:      logs.Logs[i].BlockHash.Bytes(),
@@ -201,6 +206,5 @@ func (ocp *OpChainPoller) processBatch(headers []ctypes.Header, chainCfg *cfg.Op
 			StateRoot: *stateRootEvent,
 		}
 	}
-
 	return nil
 }
