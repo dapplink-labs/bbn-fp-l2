@@ -5,6 +5,7 @@ const (
 	fpEotsPkFlag         = "eots-pk"
 	rpcListenerFlag      = "rpc-listener"
 	fpdDaemonAddressFlag = "daemon-address"
+	eotsAddressFlag      = "eots-address"
 	keyNameFlag          = "key-name"
 	appHashFlag          = "app-hash"
 	passphraseFlag       = "passphrase"

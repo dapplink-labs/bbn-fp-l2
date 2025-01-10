@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	client2 "github.com/Manta-Network/manta-fp/eotsmanager/client"
 	"os"
 	"strconv"
 	"strings"
@@ -26,6 +27,7 @@ import (
 
 var (
 	defaultFpdDaemonAddress = "127.0.0.1:" + strconv.Itoa(fpcfg.DefaultRPCPort)
+	defaultEotsAddress      = "127.0.0.1:" + strconv.Itoa(12582)
 	defaultAppHashStr       = "fd903d9baeb3ab1c734ee003de75f676c5a9a8d0574647e5385834d57d3e79ec"
 )
 
@@ -416,6 +418,62 @@ func runCommandAddFinalitySig(cmd *cobra.Command, args []string) error {
 	}
 	printRespJSON(res)
 
+	return nil
+}
+
+// CommandAddFinalitySig returns the add-finality-sig command by connecting to the fpd daemon.
+func CommandAddEotsKey() *cobra.Command {
+	var cmd = &cobra.Command{
+		Use:     "add-eots-key [key-name] [pass-phrase] [hd-path]",
+		Aliases: []string{"add-ek"},
+		Short:   "[eots] add a key to the eots.",
+		Long:    "[add] add a key to the eots. This command should only be used for presentation/testing purposes",
+		Example: fmt.Sprintf(`fpd add-eots-key [key-name] [pass-phrase] [hd-path] --eots-address %s`, defaultFpdDaemonAddress),
+		Args:    cobra.ExactArgs(2),
+		RunE:    runCommandAddEotsKey,
+	}
+	cmd.Flags().String(eotsAddressFlag, defaultEotsAddress, "The RPC server address of eots")
+	//cmd.Flags().String(keyNameFlag, "", "The key name of eots key")
+	//cmd.Flags().String(passphraseFlag, "", "The pass phrase used to encrypt the keys")
+	cmd.Flags().String(hdPathFlag, "", "The hd path to store eots key")
+
+	return cmd
+}
+
+func runCommandAddEotsKey(cmd *cobra.Command, args []string) error {
+	flags := cmd.Flags()
+	eotsAddress, err := flags.GetString(eotsAddressFlag)
+	if err != nil {
+		return fmt.Errorf("failed to read flag %s: %w", eotsAddressFlag, err)
+	}
+	//keyName, err := flags.GetString(keyNameFlag)
+	//if err != nil {
+	//	return fmt.Errorf("failed to read flag %s: %w", keyNameFlag, err)
+	//}
+	//passphrase, err := flags.GetString(passphraseFlag)
+	//if err != nil {
+	//	return fmt.Errorf("failed to read flag %s: %w", passphraseFlag, err)
+	//}
+	hdPath, err := flags.GetString(hdPathFlag)
+	if err != nil {
+		return fmt.Errorf("failed to read flag %s: %w", hdPathFlag, err)
+	}
+
+	em, err := client2.NewEOTSManagerGRpcClient(eotsAddress)
+	if err != nil {
+		return fmt.Errorf("failed to create EOTS manager client: %w", err)
+	}
+
+	var fpPk *types.BIP340PubKey
+	fpPkBytes, err := em.CreateKey(args[0], args[1], hdPath)
+	if err != nil {
+		return err
+	}
+	fpPk, err = types.NewBIP340PubKey(fpPkBytes)
+	if err != nil {
+		return err
+	}
+	printRespJSON(fpPk)
 	return nil
 }
 

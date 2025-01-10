@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/hex"
 	"fmt"
 	"math/big"
 	"sync"
@@ -12,7 +13,6 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	ctypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/log"
 
 	"github.com/Manta-Network/manta-fp/ethereum/node"
 	cfg "github.com/Manta-Network/manta-fp/finality-provider/config"
@@ -47,17 +47,17 @@ func NewOpChainPoller(logger *zap.Logger, opClient node.EthClient, cfg *cfg.OpEv
 	}
 	var fromBlock *big.Int
 	if dbLatestBlock != nil {
-		log.Info("sync detected last indexed block", "blockNumber", dbLatestBlock)
+		logger.Info("sync detected last indexed block", zap.String("blockNumber", dbLatestBlock.String()))
 		fromBlock = dbLatestBlock
 	} else if cfg.ScanStartHeight > 0 {
-		log.Info("no sync indexed state starting from supplied ethereum height", "height", cfg.ScanStartHeight)
+		logger.Info("no sync indexed state starting from supplied ethereum height", zap.Uint64("height", cfg.ScanStartHeight))
 		header, err := opClient.BlockHeaderByNumber(big.NewInt(int64(cfg.ScanStartHeight)))
 		if err != nil {
 			return nil, fmt.Errorf("could not fetch starting block header: %w", err)
 		}
 		fromBlock = header.Number
 	} else {
-		log.Info("no ethereum block indexed state")
+		logger.Info("no ethereum block indexed state")
 	}
 
 	blockTraversal := node.NewBlockTraversal(opClient, fromBlock, big.NewInt(0), cfg.ChainId)
@@ -116,24 +116,24 @@ func (ocp *OpChainPoller) opPollChain() {
 		select {
 		case <-time.After(ocp.cfg.PollInterval):
 			if len(ocp.headers) > 0 {
-				log.Info("retrying previous batch")
+				ocp.logger.Info("retrying previous batch")
 			} else {
 				newHeaders, err := ocp.blockTraversal.NextHeaders(uint64(ocp.cfg.BlockStep))
 				if err != nil {
-					log.Error("error querying for headers", "err", err)
+					ocp.logger.Error("error querying for headers", zap.String("err", err.Error()))
 					continue
 				} else if len(newHeaders) == 0 {
-					log.Warn("no new headers. syncer at head?")
+					ocp.logger.Warn("no new headers. syncer at head?")
 				} else {
 					ocp.headers = newHeaders
 				}
 				latestBlock := ocp.blockTraversal.LatestBlock()
 				if latestBlock != nil {
-					log.Info("Latest header", "latestHeader Number", latestBlock)
+					ocp.logger.Info("Latest header", zap.String("latestHeader Number", latestBlock.String()))
 				}
 				err = ocp.stateRoot.AddLatestBlock(latestBlock)
 				if err != nil {
-					log.Error("Add latest block fail", "err", err)
+					ocp.logger.Error("Add latest block fail", zap.String("err", err.Error()))
 					return
 				}
 			}
@@ -152,8 +152,7 @@ func (ocp *OpChainPoller) processBatch(headers []ctypes.Header, chainCfg *cfg.Op
 		return nil
 	}
 	firstHeader, lastHeader := headers[0], headers[len(headers)-1]
-	log.Info("extracting batch", "size", len(headers), "startBlock", firstHeader.Number.String(), "endBlock", lastHeader.Number.String())
-
+	ocp.logger.Info("extracting batch", zap.Int("size", len(headers)), zap.String("startBlock", firstHeader.Number.String()), zap.String("endBlock", lastHeader.Number.String()))
 	headerMap := make(map[common.Hash]*ctypes.Header, len(headers))
 	for i := range headers {
 		header := headers[i]
@@ -163,7 +162,7 @@ func (ocp *OpChainPoller) processBatch(headers []ctypes.Header, chainCfg *cfg.Op
 	filterQuery := ethereum.FilterQuery{FromBlock: firstHeader.Number, ToBlock: lastHeader.Number, Addresses: ocp.cfg.Contracts}
 	logs, err := ocp.opClient.FilterLogs(filterQuery)
 	if err != nil {
-		log.Info("failed to extract logs", "err", err)
+		ocp.logger.Error("failed to extract logs", zap.String("err", err.Error()))
 		return err
 	}
 
@@ -174,7 +173,7 @@ func (ocp *OpChainPoller) processBatch(headers []ctypes.Header, chainCfg *cfg.Op
 	}
 
 	if len(logs.Logs) > 0 {
-		log.Info("detected logs", "size", len(logs.Logs))
+		ocp.logger.Info("detected logs", zap.Int("size", len(logs.Logs)))
 	}
 
 	blockList := make([]types.Block, 0, len(headers))
@@ -197,8 +196,14 @@ func (ocp *OpChainPoller) processBatch(headers []ctypes.Header, chainCfg *cfg.Op
 		if err != nil {
 			return err
 		}
-		log.Info("event list", "stateroot", stateRootEvent.StateRoot)
+		ocp.logger.Info("event list", zap.String("stateroot", hex.EncodeToString(stateRootEvent.StateRoot[:])))
 
+		err = ocp.stateRoot.SaveStateRoot(big.NewInt(int64(stateRootEvent.L1BlockNumber)), stateRootEvent.StateRoot,
+			stateRootEvent.L2BlockNumber, stateRootEvent.L1BlockHash, stateRootEvent.L2OutputIndex, stateRootEvent.DisputeGameType)
+		if err != nil {
+			ocp.logger.Error("failed to store state root", zap.String("err", err.Error()))
+			return err
+		}
 		ocp.blockInfoChan <- &types.BlockInfo{
 			Height:    logs.Logs[i].BlockNumber,
 			Hash:      logs.Logs[i].BlockHash.Bytes(),

@@ -32,7 +32,7 @@ func NewRootCmd() *cobra.Command {
 func main() {
 	cmd := NewRootCmd()
 	cmd.AddCommand(
-		daemon.CommandInit(), daemon.CommandStart(), daemon.CommandKeys(),
+		daemon.CommandInit(), daemon.CommandStart(), daemon.CommandKeys(), daemon.CommandAddEotsKey(),
 		daemon.CommandGetDaemonInfo(), daemon.CommandCreateFP(), daemon.CommandLsFP(),
 		daemon.CommandInfoFP(), daemon.CommandAddFinalitySig(), daemon.CommandUnjailFP(),
 		daemon.CommandEditFinalityDescription(), daemon.CommandCommitPubRand(),

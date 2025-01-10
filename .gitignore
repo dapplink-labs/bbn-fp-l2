@@ -27,5 +27,7 @@ main
 tmp/
 build/
 dist/
+eotsd/
+fpd/
 
 *.swp
