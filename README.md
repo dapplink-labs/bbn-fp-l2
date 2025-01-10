@@ -54,12 +54,16 @@ Manta FP (Fast Finality Protocol) is a blockchain solution designed to enable fa
    ```
 2.	Navigate to the project directory:
    ```bash
-      cd manta-fp
+  cd manta-fp
    ```
 Usage
-1.	Start the Manta FP service:
+
+1. Start the Manta FP service:
+
    ```bash
+    TODO
    ```
+
 Contributing
 
 We welcome contributions! Please follow these steps:
