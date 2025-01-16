@@ -3,13 +3,14 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/Manta-Network/manta-fp/ethereum/node"
-	"github.com/Manta-Network/manta-fp/l2chain/opstack"
+
 	"strings"
 	"sync"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/avast/retry-go/v4"
+	"go.uber.org/zap"
+
 	bbntypes "github.com/babylonlabs-io/babylon/types"
 	bstypes "github.com/babylonlabs-io/babylon/x/btcstaking/types"
 	"github.com/btcsuite/btcd/btcec/v2"
@@ -18,15 +19,16 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/lightningnetwork/lnd/kvdb"
-	"go.uber.org/zap"
 
 	"github.com/Manta-Network/manta-fp/clientcontroller"
 	"github.com/Manta-Network/manta-fp/eotsmanager"
 	"github.com/Manta-Network/manta-fp/eotsmanager/client"
+	"github.com/Manta-Network/manta-fp/ethereum/node"
 	fpcfg "github.com/Manta-Network/manta-fp/finality-provider/config"
 	"github.com/Manta-Network/manta-fp/finality-provider/proto"
 	"github.com/Manta-Network/manta-fp/finality-provider/store"
 	fpkr "github.com/Manta-Network/manta-fp/keyring"
+	"github.com/Manta-Network/manta-fp/l2chain/opstack"
 	"github.com/Manta-Network/manta-fp/metrics"
 	"github.com/Manta-Network/manta-fp/types"
 )
