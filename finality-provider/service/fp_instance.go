@@ -325,9 +325,7 @@ func (fp *FinalityProviderInstance) randomnessCommitmentLoop() {
 			if len(pollerBlocks) == 0 {
 				continue
 			}
-			var tipBlock types.BlockInfo
-			tipBlock.Height = pollerBlocks[len(pollerBlocks)-1].Height
-			nextBlock, txRes, err := fp.retryCommitPubRandUntilBlockFinalized(&tipBlock)
+			nextBlock, txRes, err := fp.retryCommitPubRandUntilBlockFinalized(pollerBlocks[len(pollerBlocks)-1])
 			if err != nil {
 				fp.metrics.IncrementFpTotalFailedRandomness(fp.GetBtcPkHex())
 				fp.reportCriticalErr(err)
@@ -468,7 +466,7 @@ func (fp *FinalityProviderInstance) retryCommitPubRandUntilBlockFinalized(target
 		//  proofs, and 3) committing public randomness.
 		// TODO: make 3) a part of `select` statement. The function terminates upon either the block
 		// is finalised or the pub rand is committed successfully
-		block, res, err := fp.CommitPubRand(targetBlock.Height)
+		block, res, err := fp.CommitPubRand(targetBlock.Height, targetBlock.StateRoot.StateRoot[:])
 		if err != nil {
 			if clientcontroller.IsUnrecoverable(err) {
 				return nil, nil, err
@@ -520,38 +518,40 @@ func (fp *FinalityProviderInstance) retryCommitPubRandUntilBlockFinalized(target
 // Note:
 // - if there is no pubrand committed before, it will start from the tipHeight
 // - if the tipHeight is too large, it will only commit fp.cfg.NumPubRand pairs
-func (fp *FinalityProviderInstance) CommitPubRand(tipHeight uint64) (*types.BlockInfo, *types.TxResponse, error) {
-	lastCommittedHeight, err := fp.GetLastCommittedHeight()
-	if err != nil {
-		return nil, nil, err
-	}
+func (fp *FinalityProviderInstance) CommitPubRand(tipHeight uint64, stateroot []byte) (*types.BlockInfo, *types.TxResponse, error) {
+	//lastCommittedHeight, err := fp.GetLastCommittedHeight()
+	//if err != nil {
+	//	return nil, nil, err
+	//}
 
 	var startHeight uint64
-	switch {
-	case lastCommittedHeight == uint64(0):
-		// the finality-provider has never submitted public rand before
-		startHeight = tipHeight
-	case lastCommittedHeight > tipHeight:
-		// (should not use subtraction because they are in the type of uint64)
-		// we are running out of the randomness
-		startHeight = lastCommittedHeight + 1
-	case lastCommittedHeight <= tipHeight:
-		startHeight = tipHeight
-	default:
-		fp.logger.Debug(
-			"the finality-provider has sufficient public randomness, skip committing more",
-			zap.String("pk", fp.GetBtcPkHex()),
-			zap.Uint64("block_height", tipHeight),
-			zap.Uint64("last_committed_height", lastCommittedHeight),
-		)
-		return nil, nil, nil
-	}
+	//switch {
+	//case lastCommittedHeight == uint64(0):
+	//	// the finality-provider has never submitted public rand before
+	//	startHeight = tipHeight
+	//case lastCommittedHeight > tipHeight:
+	//	// (should not use subtraction because they are in the type of uint64)
+	//	// we are running out of the randomness
+	//	startHeight = lastCommittedHeight + 1
+	//case lastCommittedHeight <= tipHeight:
+	//	startHeight = tipHeight
+	//default:
+	//	fp.logger.Debug(
+	//		"the finality-provider has sufficient public randomness, skip committing more",
+	//		zap.String("pk", fp.GetBtcPkHex()),
+	//		zap.Uint64("block_height", tipHeight),
+	//		zap.Uint64("last_committed_height", lastCommittedHeight),
+	//	)
+	//	return nil, nil, nil
+	//}
 
-	return fp.commitPubRandPairs(startHeight)
+	startHeight = tipHeight
+
+	return fp.commitPubRandPairs(startHeight, stateroot)
 }
 
 // it will commit fp.cfg.NumPubRand pairs of public randomness starting from startHeight
-func (fp *FinalityProviderInstance) commitPubRandPairs(startHeight uint64) (*types.BlockInfo, *types.TxResponse, error) {
+func (fp *FinalityProviderInstance) commitPubRandPairs(startHeight uint64, stateroot []byte) (*types.BlockInfo, *types.TxResponse, error) {
 	// generate a list of Schnorr randomness pairs
 	// NOTE: currently, calling this will create and save a list of randomness
 	// in case of failure, randomness that has been created will be overwritten
@@ -584,7 +584,7 @@ func (fp *FinalityProviderInstance) commitPubRandPairs(startHeight uint64) (*typ
 	// Todo change to stateroot
 	var block types.BlockInfo
 	block.Height = startHeight
-	block.Hash = []byte("0x123456")
+	block.StateRoot.StateRoot = [32]byte(stateroot)
 
 	// Update metrics
 	fp.metrics.RecordFpRandomnessTime(fp.GetBtcPkHex())
@@ -655,7 +655,7 @@ func (fp *FinalityProviderInstance) TestCommitPubRandWithStartHeight(startHeight
 	// TODO: instead of sending multiple txs, a better way is to bundle all the commit messages into
 	// one like we do for batch finality signatures. see discussion https://bit.ly/3OmbjkN
 	for startHeight <= targetBlockHeight {
-		_, _, err = fp.commitPubRandPairs(startHeight)
+		_, _, err = fp.commitPubRandPairs(startHeight, []byte(""))
 		if err != nil {
 			return err
 		}

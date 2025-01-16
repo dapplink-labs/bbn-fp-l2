@@ -26,7 +26,7 @@ type SubmitFinalitySignatureMsgParams struct {
 	Height      uint64 `json:"height"`
 	PubRand     []byte `json:"pub_rand"`
 	Proof       Proof  `json:"proof"`
-	BlockHash   []byte `json:"block_hash"`
+	StateRoot   []byte `json:"state_root"`
 	Signature   []byte `json:"signature"`
 }
 

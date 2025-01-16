@@ -257,7 +257,7 @@ func (bc *BabylonController) SubmitBatchFinalitySigs(
 			Height:      block.Height,
 			PubRand:     bbntypes.NewSchnorrPubRandFromFieldVal(pubRand).MustMarshal(),
 			Proof:       ConvertProof(cmtProof),
-			BlockHash:   block.Hash,
+			StateRoot:   block.StateRoot.StateRoot[:],
 			Signature:   bbntypes.NewSchnorrEOTSSigFromModNScalar(sig).MustMarshal(),
 		},
 	}
