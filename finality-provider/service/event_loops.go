@@ -75,7 +75,7 @@ func (app *FinalityProviderApp) monitorStatusUpdate() {
 				continue
 			}
 			oldStatus := fpi.GetStatus()
-			power, err := fpi.GetVotingPowerWithRetry(latestBlock.Height)
+			hasPower, err := fpi.GetVotingPowerWithRetry(latestBlock.Height)
 			if err != nil {
 				app.logger.Debug(
 					"failed to get the voting power",
@@ -86,14 +86,14 @@ func (app *FinalityProviderApp) monitorStatusUpdate() {
 				continue
 			}
 			// power > 0 (slashed_height must > 0), set status to ACTIVE
-			if power > 0 {
+			if hasPower {
 				if oldStatus != proto.FinalityProviderStatus_ACTIVE {
 					fpi.MustSetStatus(proto.FinalityProviderStatus_ACTIVE)
 					app.logger.Debug(
 						"the finality-provider status is changed to ACTIVE",
 						zap.String("fp_btc_pk", fpi.GetBtcPkHex()),
 						zap.String("old_status", oldStatus.String()),
-						zap.Uint64("power", power),
+						zap.Bool("has_power", hasPower),
 					)
 				}
 				continue

@@ -22,6 +22,9 @@ type OpEventConfig struct {
 	L2OutputOracleAddr string        `long:"l2outputoracleaddr" description:"The contract address of L2OutputOracle address"`
 	PollInterval       time.Duration `long:"pollinterval" description:"The interval between each polling of blocks; the value should be set depending on the block production time but could be set smaller for quick catching up"`
 	ScanStartHeight    uint64        `long:"scantartheight" description:"The height from which we start polling the chain"`
+
+	OPFinalityGadgetAddress  string `long:"op-finality-gadget" description:"the contract address of the op-finality-gadget"`
+	BabylonFinalityGadgetRpc string `long:"babylon-finality-gadget-rpc" description:"the rpc address of babylon op finality gadget"`
 }
 
 func DefaultOpEventConfig() OpEventConfig {

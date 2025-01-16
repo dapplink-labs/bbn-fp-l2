@@ -46,13 +46,6 @@ func (fp *FinalityProviderInstance) HelperCommitPubRand(tipHeight uint64) (*type
 func (fp *FinalityProviderInstance) commitPubRandPairsWithTiming(startHeight uint64) (*types.TxResponse, *CommitPubRandTiming, error) {
 	timing := &CommitPubRandTiming{}
 
-	activationBlkHeight, err := fp.cc.QueryFinalityActivationBlockHeight()
-	if err != nil {
-		return nil, timing, err
-	}
-
-	startHeight = max(startHeight, activationBlkHeight)
-
 	// Measure getPubRandList
 	pubRandListStart := time.Now()
 	pubRandList, err := fp.getPubRandList(startHeight, fp.cfg.NumPubRand)

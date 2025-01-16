@@ -3,6 +3,7 @@ package config
 import (
 	"time"
 
+	cwcfg "github.com/Manta-Network/manta-fp/cosmwasmclient/config"
 	bbncfg "github.com/babylonlabs-io/babylon/client/config"
 )
 
@@ -60,6 +61,25 @@ func BBNConfigToBabylonConfig(bc *BBNConfig) bbncfg.BabylonConfig {
 		BlockTimeout:     bc.BlockTimeout,
 		OutputFormat:     bc.OutputFormat,
 		SignModeStr:      bc.SignModeStr,
+		SubmitterAddress: "",
+	}
+}
+
+func BBNConfigToCosmwasmConfig(cfg *BBNConfig) cwcfg.CosmwasmConfig {
+	return cwcfg.CosmwasmConfig{
+		Key:              cfg.Key,
+		ChainID:          cfg.ChainID,
+		RPCAddr:          cfg.RPCAddr,
+		AccountPrefix:    cfg.AccountPrefix,
+		KeyringBackend:   cfg.KeyringBackend,
+		GasAdjustment:    cfg.GasAdjustment,
+		GasPrices:        cfg.GasPrices,
+		KeyDirectory:     cfg.KeyDirectory,
+		Debug:            cfg.Debug,
+		Timeout:          cfg.Timeout,
+		BlockTimeout:     cfg.BlockTimeout,
+		OutputFormat:     cfg.OutputFormat,
+		SignModeStr:      cfg.SignModeStr,
 		SubmitterAddress: "",
 	}
 }

@@ -64,7 +64,7 @@ func NewFinalityProviderAppFromConfig(
 	db kvdb.Backend,
 	logger *zap.Logger,
 ) (*FinalityProviderApp, error) {
-	cc, err := clientcontroller.NewClientController(cfg.ChainType, cfg.BabylonConfig, &cfg.BTCNetParams, logger)
+	cc, err := clientcontroller.NewClientController(cfg.ChainType, cfg.BabylonConfig, cfg.OpEventConfig, &cfg.BTCNetParams, logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create rpc client for the consumer chain %s: %w", cfg.ChainType, err)
 	}
@@ -95,6 +95,10 @@ func NewFinalityProviderApp(
 	if err != nil {
 		return nil, fmt.Errorf("failed to initiate public randomness store: %w", err)
 	}
+	sRStore, err := store.NewOpStateRootStore(db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initiate op state root store: %w", err)
+	}
 
 	input := strings.NewReader("")
 	kr, err := fpkr.CreateKeyring(
@@ -112,11 +116,6 @@ func NewFinalityProviderApp(
 	opClient, err := node.DialEthClient(context.Background(), config.OpEventConfig.EthRpc)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create op client: %w", err)
-	}
-
-	sRStore, err := store.NewOpStateRootStore(db)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initiate op state root store: %w", err)
 	}
 
 	ep, err := opstack.NewEventProvider(context.Background(), logger)
@@ -230,7 +229,7 @@ func (app *FinalityProviderApp) SyncAllFinalityProvidersStatus() error {
 		}
 
 		pkHex := fp.GetBIP340BTCPK().MarshalHex()
-		power, err := app.cc.QueryFinalityProviderVotingPower(fp.BtcPk, latestBlock.Height)
+		hasPower, err := app.cc.QueryFinalityProviderVotingPower(fp.BtcPk, latestBlock.Height)
 		if err != nil {
 			return fmt.Errorf("failed to query voting power for finality provider %s at height %d: %w",
 				fp.GetBIP340BTCPK().MarshalHex(), latestBlock.Height, err)
@@ -238,7 +237,7 @@ func (app *FinalityProviderApp) SyncAllFinalityProvidersStatus() error {
 
 		// power > 0 (slashed_height must > 0), set status to ACTIVE
 		oldStatus := fp.Status
-		if power > 0 {
+		if hasPower {
 			if oldStatus != proto.FinalityProviderStatus_ACTIVE {
 				fp.Status = proto.FinalityProviderStatus_ACTIVE
 				app.fps.MustSetFpStatus(fp.BtcPk, proto.FinalityProviderStatus_ACTIVE)
@@ -246,7 +245,7 @@ func (app *FinalityProviderApp) SyncAllFinalityProvidersStatus() error {
 					"the finality-provider status is changed to ACTIVE",
 					zap.String("fp_btc_pk", pkHex),
 					zap.String("old_status", oldStatus.String()),
-					zap.Uint64("power", power),
+					zap.Bool("has_power", hasPower),
 				)
 			}
 			continue

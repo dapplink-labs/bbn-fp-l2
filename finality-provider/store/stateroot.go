@@ -30,7 +30,7 @@ var (
 	LatestBlock         = []byte("latestBlock")
 	LatestBlockKey      = []byte("latestBlockKey")
 	BlockHeaderName     = []byte("blockHeader")
-	StateRootBucketName = []byte("opStateRoot")
+	StateRootBucketName = []byte("opStateRoot17")
 )
 
 type OpStateRootStore struct {
@@ -72,10 +72,6 @@ func (s *OpStateRootStore) AddLatestBlock(blockNumber *big.Int) error {
 			return ErrCorruptedLatestBlockrDb
 		}
 
-		if latestBlockBucket.Get(LatestBlockKey) != nil {
-			return ErrDuplicateBlock
-		}
-
 		return latestBlockBucket.Put(LatestBlockKey, blockNumber.Bytes())
 	})
 }
@@ -90,7 +86,7 @@ func (s *OpStateRootStore) GetLatestBlock() (*big.Int, error) {
 
 		blockByte := blockNumberBucket.Get(LatestBlockKey)
 		if blockByte == nil {
-			return ErrBlockNotFound
+			return nil
 		}
 		blockNumber = new(big.Int).SetBytes(blockByte)
 		return nil

@@ -36,7 +36,7 @@ func main() {
 		daemon.CommandGetDaemonInfo(), daemon.CommandCreateFP(), daemon.CommandLsFP(),
 		daemon.CommandInfoFP(), daemon.CommandAddFinalitySig(), daemon.CommandUnjailFP(),
 		daemon.CommandEditFinalityDescription(), daemon.CommandCommitPubRand(),
-		incentivecli.NewWithdrawRewardCmd(), incentivecli.NewSetWithdrawAddressCmd(),
+		incentivecli.NewWithdrawRewardCmd(),
 		version.CommandVersion("fpd"),
 	)
 

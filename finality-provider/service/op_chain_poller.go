@@ -26,7 +26,7 @@ type OpChainPoller struct {
 	isStarted *atomic.Bool
 	wg        sync.WaitGroup
 	logger    *zap.Logger
-	stateRoot *store.OpStateRootStore
+	sRStore   *store.OpStateRootStore
 
 	opClient       node.EthClient
 	cfg            *cfg.OpEventConfig
@@ -40,8 +40,8 @@ type OpChainPoller struct {
 	quit    chan struct{}
 }
 
-func NewOpChainPoller(logger *zap.Logger, opClient node.EthClient, cfg *cfg.OpEventConfig, stateRoot *store.OpStateRootStore, eventProvider *opstack.EventProvider, metrics *metrics.FpMetrics) (*OpChainPoller, error) {
-	dbLatestBlock, err := stateRoot.GetLatestBlock()
+func NewOpChainPoller(logger *zap.Logger, opClient node.EthClient, startHeight uint64, cfg *cfg.OpEventConfig, sRStore *store.OpStateRootStore, eventProvider *opstack.EventProvider, metrics *metrics.FpMetrics) (*OpChainPoller, error) {
+	dbLatestBlock, err := sRStore.GetLatestBlock()
 	if err != nil {
 		return nil, err
 	}
@@ -49,9 +49,9 @@ func NewOpChainPoller(logger *zap.Logger, opClient node.EthClient, cfg *cfg.OpEv
 	if dbLatestBlock != nil {
 		logger.Info("sync detected last indexed block", zap.String("blockNumber", dbLatestBlock.String()))
 		fromBlock = dbLatestBlock
-	} else if cfg.ScanStartHeight > 0 {
-		logger.Info("no sync indexed state starting from supplied ethereum height", zap.Uint64("height", cfg.ScanStartHeight))
-		header, err := opClient.BlockHeaderByNumber(big.NewInt(int64(cfg.ScanStartHeight)))
+	} else if startHeight > 0 {
+		logger.Info("no sync indexed state starting from supplied ethereum height", zap.Uint64("height", startHeight))
+		header, err := opClient.BlockHeaderByNumber(big.NewInt(int64(startHeight)))
 		if err != nil {
 			return nil, fmt.Errorf("could not fetch starting block header: %w", err)
 		}
@@ -60,12 +60,13 @@ func NewOpChainPoller(logger *zap.Logger, opClient node.EthClient, cfg *cfg.OpEv
 		logger.Info("no ethereum block indexed state")
 	}
 
-	blockTraversal := node.NewBlockTraversal(opClient, fromBlock, big.NewInt(0), cfg.ChainId)
+	blockTraversal := node.NewBlockTraversal(opClient, fromBlock, big.NewInt(0), cfg.ChainId, logger)
 
 	return &OpChainPoller{
 		isStarted:      atomic.NewBool(false),
 		logger:         logger,
 		opClient:       opClient,
+		sRStore:        sRStore,
 		cfg:            cfg,
 		latestBlock:    fromBlock,
 		blockTraversal: blockTraversal,
@@ -83,6 +84,7 @@ func (ocp *OpChainPoller) Start(startHeight uint64) error {
 
 	ocp.logger.Info("starting the op chain poller")
 
+	ocp.wg.Add(1)
 	go ocp.opPollChain()
 
 	ocp.metrics.RecordPollerStartingHeight(startHeight) // todo: change to op stack
@@ -131,7 +133,7 @@ func (ocp *OpChainPoller) opPollChain() {
 				if latestBlock != nil {
 					ocp.logger.Info("Latest header", zap.String("latestHeader Number", latestBlock.String()))
 				}
-				err = ocp.stateRoot.AddLatestBlock(latestBlock)
+				err = ocp.sRStore.AddLatestBlock(latestBlock)
 				if err != nil {
 					ocp.logger.Error("Add latest block fail", zap.String("err", err.Error()))
 					return
@@ -198,7 +200,7 @@ func (ocp *OpChainPoller) processBatch(headers []ctypes.Header, chainCfg *cfg.Op
 		}
 		ocp.logger.Info("event list", zap.String("stateroot", hex.EncodeToString(stateRootEvent.StateRoot[:])))
 
-		err = ocp.stateRoot.SaveStateRoot(big.NewInt(int64(stateRootEvent.L1BlockNumber)), stateRootEvent.StateRoot,
+		err = ocp.sRStore.SaveStateRoot(big.NewInt(int64(stateRootEvent.L1BlockNumber)), stateRootEvent.StateRoot,
 			stateRootEvent.L2BlockNumber, stateRootEvent.L1BlockHash, stateRootEvent.L2OutputIndex, stateRootEvent.DisputeGameType)
 		if err != nil {
 			ocp.logger.Error("failed to store state root", zap.String("err", err.Error()))

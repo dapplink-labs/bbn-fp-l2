@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"math/big"
 	"strings"
 	"sync"
 	"time"
@@ -42,6 +43,8 @@ type FinalityProviderInstance struct {
 	opClient node.EthClient
 	sRStore  *store.OpStateRootStore
 	eP       *opstack.EventProvider
+
+	blockInfoChan chan *types.BlockInfo
 
 	// passphrase is used to unlock private keys
 	passphrase string
@@ -107,6 +110,7 @@ func newFinalityProviderInstanceFromStore(
 		logger:          logger,
 		isStarted:       atomic.NewBool(false),
 		criticalErrChan: errChan,
+		blockInfoChan:   make(chan *types.BlockInfo, cfg.OpEventConfig.BufferSize),
 		passphrase:      passphrase,
 		em:              em,
 		cc:              cc,
@@ -136,7 +140,9 @@ func (fp *FinalityProviderInstance) Start() error {
 	fp.logger.Info("starting the finality provider",
 		zap.String("pk", fp.GetBtcPkHex()), zap.Uint64("height", startHeight))
 
-	poller, err := NewOpChainPoller(fp.logger, fp.opClient, fp.cfg.OpEventConfig, fp.sRStore, fp.eP, fp.metrics)
+	fp.sRStore.AddLatestBlock(big.NewInt(int64(startHeight)))
+
+	poller, err := NewOpChainPoller(fp.logger, fp.opClient, startHeight, fp.cfg.OpEventConfig, fp.sRStore, fp.eP, fp.metrics)
 	if err != nil {
 		return fmt.Errorf("failed to new op chain poller: %w", err)
 	}
@@ -192,7 +198,7 @@ func (fp *FinalityProviderInstance) finalitySigSubmissionLoop() {
 	for {
 		select {
 		case <-time.After(fp.cfg.SignatureSubmissionInterval):
-			pollerBlocks := fp.getAllBlocksFromChan()
+			pollerBlocks := fp.getRandomnessCommitmentBlocksFromChan()
 			if len(pollerBlocks) == 0 {
 				continue
 			}
@@ -260,6 +266,26 @@ func (fp *FinalityProviderInstance) getAllBlocksFromChan() []*types.BlockInfo {
 	}
 }
 
+func (fp *FinalityProviderInstance) GetRandomnessBlockInfoChan() <-chan *types.BlockInfo {
+	return fp.blockInfoChan
+}
+
+func (fp *FinalityProviderInstance) getRandomnessCommitmentBlocksFromChan() []*types.BlockInfo {
+	var pollerBlocks []*types.BlockInfo
+	for {
+		select {
+		case b := <-fp.GetRandomnessBlockInfoChan():
+			pollerBlocks = append(pollerBlocks, b)
+			return pollerBlocks
+		case <-fp.quit:
+			fp.logger.Info("the get all blocks loop is closing")
+			return nil
+		default:
+			return pollerBlocks
+		}
+	}
+}
+
 func (fp *FinalityProviderInstance) shouldProcessBlock(b *types.BlockInfo) (bool, error) {
 	if b.Height <= fp.GetLastVotedHeight() {
 		fp.logger.Debug(
@@ -295,12 +321,13 @@ func (fp *FinalityProviderInstance) randomnessCommitmentLoop() {
 	for {
 		select {
 		case <-commitRandTicker.C:
-			tipBlock, err := fp.getLatestBlockWithRetry()
-			if err != nil {
-				fp.reportCriticalErr(err)
+			pollerBlocks := fp.getAllBlocksFromChan()
+			if len(pollerBlocks) == 0 {
 				continue
 			}
-			txRes, err := fp.retryCommitPubRandUntilBlockFinalized(tipBlock)
+			var tipBlock types.BlockInfo
+			tipBlock.Height = pollerBlocks[len(pollerBlocks)-1].Height
+			nextBlock, txRes, err := fp.retryCommitPubRandUntilBlockFinalized(&tipBlock)
 			if err != nil {
 				fp.metrics.IncrementFpTotalFailedRandomness(fp.GetBtcPkHex())
 				fp.reportCriticalErr(err)
@@ -308,6 +335,7 @@ func (fp *FinalityProviderInstance) randomnessCommitmentLoop() {
 			}
 			// txRes could be nil if no need to commit more randomness
 			if txRes != nil {
+				fp.blockInfoChan <- nextBlock
 				fp.logger.Info(
 					"successfully committed public randomness to the consumer chain",
 					zap.String("pk", fp.GetBtcPkHex()),
@@ -323,11 +351,11 @@ func (fp *FinalityProviderInstance) randomnessCommitmentLoop() {
 }
 
 func (fp *FinalityProviderInstance) hasVotingPower(b *types.BlockInfo) (bool, error) {
-	power, err := fp.GetVotingPowerWithRetry(b.Height)
+	hasPower, err := fp.GetVotingPowerWithRetry(b.Height)
 	if err != nil {
 		return false, err
 	}
-	if power == 0 {
+	if !hasPower {
 		fp.logger.Debug(
 			"the finality-provider does not have voting power",
 			zap.String("pk", fp.GetBtcPkHex()),
@@ -422,12 +450,12 @@ func (fp *FinalityProviderInstance) checkBlockFinalization(height uint64) (bool,
 		return false, err
 	}
 
-	return b.Finalized, nil
+	return b, nil
 }
 
 // retryCommitPubRandUntilBlockFinalized periodically tries to commit public rand until success or the block is finalized
 // error will be returned if maximum retries have been reached or the query to the consumer chain fails
-func (fp *FinalityProviderInstance) retryCommitPubRandUntilBlockFinalized(targetBlock *types.BlockInfo) (*types.TxResponse, error) {
+func (fp *FinalityProviderInstance) retryCommitPubRandUntilBlockFinalized(targetBlock *types.BlockInfo) (*types.BlockInfo, *types.TxResponse, error) {
 	var failedCycles uint32
 
 	// we break the for loop if the block is finalized or the public rand is successfully committed
@@ -440,10 +468,10 @@ func (fp *FinalityProviderInstance) retryCommitPubRandUntilBlockFinalized(target
 		//  proofs, and 3) committing public randomness.
 		// TODO: make 3) a part of `select` statement. The function terminates upon either the block
 		// is finalised or the pub rand is committed successfully
-		res, err := fp.CommitPubRand(targetBlock.Height)
+		block, res, err := fp.CommitPubRand(targetBlock.Height)
 		if err != nil {
 			if clientcontroller.IsUnrecoverable(err) {
-				return nil, err
+				return nil, nil, err
 			}
 			fp.logger.Debug(
 				"failed to commit public randomness to the consumer chain",
@@ -455,18 +483,18 @@ func (fp *FinalityProviderInstance) retryCommitPubRandUntilBlockFinalized(target
 
 			failedCycles++
 			if failedCycles > fp.cfg.MaxSubmissionRetries {
-				return nil, fmt.Errorf("reached max failed cycles with err: %w", err)
+				return nil, nil, fmt.Errorf("reached max failed cycles with err: %w", err)
 			}
 		} else {
 			// the public randomness has been successfully submitted
-			return res, nil
+			return block, res, nil
 		}
 		select {
 		case <-time.After(fp.cfg.SubmissionRetryInterval):
 			// periodically query the index block to be later checked whether it is Finalized
 			finalized, err := fp.checkBlockFinalization(targetBlock.Height)
 			if err != nil {
-				return nil, fmt.Errorf("failed to query block finalization at height %v: %w", targetBlock.Height, err)
+				return nil, nil, fmt.Errorf("failed to query block finalization at height %v: %w", targetBlock.Height, err)
 			}
 			if finalized {
 				fp.logger.Debug(
@@ -476,12 +504,12 @@ func (fp *FinalityProviderInstance) retryCommitPubRandUntilBlockFinalized(target
 				)
 				// TODO: returning nil here is to safely break the loop
 				//  the error still exists
-				return nil, nil
+				return nil, nil, nil
 			}
 
 		case <-fp.quit:
 			fp.logger.Debug("the finality-provider instance is closing", zap.String("pk", fp.GetBtcPkHex()))
-			return nil, nil
+			return nil, nil, nil
 		}
 	}
 }
@@ -492,21 +520,23 @@ func (fp *FinalityProviderInstance) retryCommitPubRandUntilBlockFinalized(target
 // Note:
 // - if there is no pubrand committed before, it will start from the tipHeight
 // - if the tipHeight is too large, it will only commit fp.cfg.NumPubRand pairs
-func (fp *FinalityProviderInstance) CommitPubRand(tipHeight uint64) (*types.TxResponse, error) {
+func (fp *FinalityProviderInstance) CommitPubRand(tipHeight uint64) (*types.BlockInfo, *types.TxResponse, error) {
 	lastCommittedHeight, err := fp.GetLastCommittedHeight()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	var startHeight uint64
 	switch {
 	case lastCommittedHeight == uint64(0):
 		// the finality-provider has never submitted public rand before
-		startHeight = tipHeight + 1
-	case lastCommittedHeight < uint64(fp.cfg.MinRandHeightGap)+tipHeight:
+		startHeight = tipHeight
+	case lastCommittedHeight > tipHeight:
 		// (should not use subtraction because they are in the type of uint64)
 		// we are running out of the randomness
 		startHeight = lastCommittedHeight + 1
+	case lastCommittedHeight <= tipHeight:
+		startHeight = tipHeight
 	default:
 		fp.logger.Debug(
 			"the finality-provider has sufficient public randomness, skip committing more",
@@ -514,30 +544,22 @@ func (fp *FinalityProviderInstance) CommitPubRand(tipHeight uint64) (*types.TxRe
 			zap.Uint64("block_height", tipHeight),
 			zap.Uint64("last_committed_height", lastCommittedHeight),
 		)
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	return fp.commitPubRandPairs(startHeight)
 }
 
 // it will commit fp.cfg.NumPubRand pairs of public randomness starting from startHeight
-func (fp *FinalityProviderInstance) commitPubRandPairs(startHeight uint64) (*types.TxResponse, error) {
-	activationBlkHeight, err := fp.cc.QueryFinalityActivationBlockHeight()
-	if err != nil {
-		return nil, err
-	}
-
-	// make sure that the start height is at least the finality activation height
-	// and updated to generate the list with the same as the committed height.
-	startHeight = max(startHeight, activationBlkHeight)
+func (fp *FinalityProviderInstance) commitPubRandPairs(startHeight uint64) (*types.BlockInfo, *types.TxResponse, error) {
 	// generate a list of Schnorr randomness pairs
 	// NOTE: currently, calling this will create and save a list of randomness
 	// in case of failure, randomness that has been created will be overwritten
 	// for safety reason as the same randomness must not be used twice
 	pubRandList, err := fp.getPubRandList(startHeight, fp.cfg.NumPubRand)
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate randomness: %w", err)
-	}
+	//if err != nil {
+	//	return nil, fmt.Errorf("failed to generate randomness: %w", err)
+	//}
 	numPubRand := uint64(len(pubRandList))
 
 	// generate commitment and proof for each public randomness
@@ -545,26 +567,31 @@ func (fp *FinalityProviderInstance) commitPubRandPairs(startHeight uint64) (*typ
 
 	// store them to database
 	if err := fp.pubRandState.addPubRandProofList(pubRandList, proofList); err != nil {
-		return nil, fmt.Errorf("failed to save public randomness to DB: %w", err)
+		return nil, nil, fmt.Errorf("failed to save public randomness to DB: %w", err)
 	}
 
 	// sign the commitment
 	schnorrSig, err := fp.signPubRandCommit(startHeight, numPubRand, commitment)
 	if err != nil {
-		return nil, fmt.Errorf("failed to sign the Schnorr signature: %w", err)
+		return nil, nil, fmt.Errorf("failed to sign the Schnorr signature: %w", err)
 	}
 
 	res, err := fp.cc.CommitPubRandList(fp.GetBtcPk(), startHeight, numPubRand, commitment, schnorrSig)
 	if err != nil {
-		return nil, fmt.Errorf("failed to commit public randomness to the consumer chain: %w", err)
+		return nil, nil, fmt.Errorf("failed to commit public randomness to the consumer chain: %w", err)
 	}
+
+	// Todo change to stateroot
+	var block types.BlockInfo
+	block.Height = startHeight
+	block.Hash = []byte("0x123456")
 
 	// Update metrics
 	fp.metrics.RecordFpRandomnessTime(fp.GetBtcPkHex())
 	fp.metrics.RecordFpLastCommittedRandomnessHeight(fp.GetBtcPkHex(), startHeight+numPubRand-1)
 	fp.metrics.AddToFpTotalCommittedRandomness(fp.GetBtcPkHex(), float64(len(pubRandList)))
 
-	return res, nil
+	return &block, res, nil
 }
 
 // TestCommitPubRand is exposed for devops/testing purpose to allow manual committing public randomness in cases
@@ -628,7 +655,7 @@ func (fp *FinalityProviderInstance) TestCommitPubRandWithStartHeight(startHeight
 	// TODO: instead of sending multiple txs, a better way is to bundle all the commit messages into
 	// one like we do for batch finality signatures. see discussion https://bit.ly/3OmbjkN
 	for startHeight <= targetBlockHeight {
-		_, err = fp.commitPubRandPairs(startHeight)
+		_, _, err = fp.commitPubRandPairs(startHeight)
 		if err != nil {
 			return err
 		}
@@ -663,9 +690,11 @@ func (fp *FinalityProviderInstance) SubmitBatchFinalitySignatures(blocks []*type
 	if err != nil {
 		return nil, fmt.Errorf("failed to get public randomness list: %w", err)
 	}
+
+	pubRand := prList[0]
 	// get proof list
 	// TODO: how to recover upon having an error in getPubRandProofList?
-	proofBytesList, err := fp.pubRandState.getPubRandProofList(prList)
+	proofBytes, err := fp.pubRandState.getPubRandProof(pubRand)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get public randomness inclusion proof list: %w", err)
 	}
@@ -681,7 +710,7 @@ func (fp *FinalityProviderInstance) SubmitBatchFinalitySignatures(blocks []*type
 	}
 
 	// send finality signature to the consumer chain
-	res, err := fp.cc.SubmitBatchFinalitySigs(fp.GetBtcPk(), blocks, prList, proofBytesList, sigList)
+	res, err := fp.cc.SubmitBatchFinalitySigs(fp.GetBtcPk(), blocks[0], pubRand, proofBytes, sigList[0])
 	if err != nil {
 		if strings.Contains(err.Error(), "jailed") {
 			return nil, ErrFinalityProviderJailed
@@ -806,68 +835,65 @@ func (fp *FinalityProviderInstance) DetermineStartHeight() (uint64, error) {
 
 	// determine an effective lastVotedHeight
 	var lastVotedHeight uint64
-	if fp.GetLastVotedHeight() == 0 {
-		lastVotedHeight = lastFinalizedHeight
-	} else {
-		lastVotedHeight = fp.GetLastVotedHeight()
-	}
+	lastVotedHeight = lastFinalizedHeight
+	//Todo euphrates-0.5.0 is not impelement
+	//if fp.GetLastVotedHeight() == 0 {
+	//	lastVotedHeight = lastFinalizedHeight
+	//} else {
+	//	lastVotedHeight = fp.GetLastVotedHeight()
+	//}
 
-	highestVotedHeight, err := fp.highestVotedHeightWithRetry()
-	if err != nil {
-		return 0, fmt.Errorf("failed to get the highest voted height: %w", err)
-	}
+	//highestVotedHeight, err := fp.highestVotedHeightWithRetry()
+	//if err != nil {
+	//	return 0, fmt.Errorf("failed to get the highest voted height: %w", err)
+	//}
 
 	// TODO: if highestVotedHeight > lastVotedHeight, using highestVotedHeight could lead
 	// to issues when there are missed blocks between the gap due to bugs.
 	// A proper solution is to check if the fp has voted for each block within the gap
-	lastVotedHeight = max(lastVotedHeight, highestVotedHeight)
-
-	finalityActivationHeight, err := fp.getFinalityActivationHeightWithRetry()
-	if err != nil {
-		return 0, fmt.Errorf("failed to get finality activation height: %w", err)
-	}
-
-	// determine the final starting height
-	startHeight := max(finalityActivationHeight, lastVotedHeight+1)
+	//lastVotedHeight = max(lastVotedHeight, highestVotedHeight)
+	//
+	//finalityActivationHeight, err := fp.getFinalityActivationHeightWithRetry()
+	//if err != nil {
+	//	return 0, fmt.Errorf("failed to get finality activation height: %w", err)
+	//}
+	//
+	//// determine the final starting height
+	//startHeight := max(finalityActivationHeight, lastVotedHeight+1)
 
 	// log how start height is determined
 	fp.logger.Info("determined poller starting height",
 		zap.String("pk", fp.GetBtcPkHex()),
-		zap.Uint64("start_height", startHeight),
-		zap.Uint64("finality_activation_height", finalityActivationHeight),
-		zap.Uint64("last_voted_height", fp.GetLastVotedHeight()),
-		zap.Uint64("last_finalized_height", lastFinalizedHeight),
-		zap.Uint64("highest_voted_height", highestVotedHeight))
+		zap.Uint64("start_height", lastVotedHeight),
+		//zap.Uint64("finality_activation_height", finalityActivationHeight),
+		//zap.Uint64("last_voted_height", fp.GetLastVotedHeight()),
+		//zap.Uint64("last_finalized_height", lastFinalizedHeight),
+		//zap.Uint64("highest_voted_height", highestVotedHeight)
+	)
 
-	return startHeight, nil
+	return lastVotedHeight, nil
 }
 
 func (fp *FinalityProviderInstance) GetLastCommittedHeight() (uint64, error) {
-	pubRandCommitMap, err := fp.lastCommittedPublicRandWithRetry(1)
+	pubRandCommit, err := fp.lastCommittedPublicRandWithRetry()
 	if err != nil {
 		return 0, err
 	}
 
 	// no committed randomness yet
-	if len(pubRandCommitMap) == 0 {
+	if pubRandCommit == nil {
 		return 0, nil
 	}
 
-	if len(pubRandCommitMap) > 1 {
-		return 0, fmt.Errorf("got more than one last committed public randomness")
-	}
-	var lastCommittedHeight uint64
-	for startHeight, resp := range pubRandCommitMap {
-		lastCommittedHeight = startHeight + resp.NumPubRand - 1
-	}
+	lastCommittedHeight := pubRandCommit.StartHeight + pubRandCommit.NumPubRand - 1
 
 	return lastCommittedHeight, nil
 }
 
-func (fp *FinalityProviderInstance) lastCommittedPublicRandWithRetry(count uint64) (map[uint64]*ftypes.PubRandCommitResponse, error) {
-	var response map[uint64]*ftypes.PubRandCommitResponse
+func (fp *FinalityProviderInstance) lastCommittedPublicRandWithRetry() (*types.PubRandCommit, error) {
+	var response *types.PubRandCommit
 	if err := retry.Do(func() error {
-		resp, err := fp.cc.QueryLastCommittedPublicRand(fp.GetBtcPk(), count)
+		resp, err := fp.cc.QueryLastCommittedPublicRand(fp.GetBtcPk())
 		if err != nil {
 			return err
 		}
@@ -889,15 +915,15 @@ func (fp *FinalityProviderInstance) lastCommittedPublicRandWithRetry(count uint6
 func (fp *FinalityProviderInstance) latestFinalizedHeightWithRetry() (uint64, error) {
 	var height uint64
 	if err := retry.Do(func() error {
-		blocks, err := fp.cc.QueryLatestFinalizedBlocks(1)
+		latestBlockHeight, err := fp.cc.QueryLatestFinalizedBlocks()
 		if err != nil {
 			return err
 		}
-		if len(blocks) == 0 {
+		if latestBlockHeight == 0 {
 			// no finalized block yet
 			return nil
 		}
-		height = blocks[0].Height
+		height = latestBlockHeight
 		return nil
 	}, RtyAtt, RtyDel, RtyErr, retry.OnRetry(func(n uint, err error) {
 		fp.logger.Debug(
@@ -911,51 +937,6 @@ func (fp *FinalityProviderInstance) latestFinalizedHeightWithRetry() (uint64, er
 	}
 
 	return height, nil
-}
-
-func (fp *FinalityProviderInstance) highestVotedHeightWithRetry() (uint64, error) {
-	var height uint64
-	if err := retry.Do(func() error {
-		h, err := fp.cc.QueryFinalityProviderHighestVotedHeight(fp.GetBtcPk())
-		if err != nil {
-			return err
-		}
-		height = h
-		return nil
-	}, RtyAtt, RtyDel, RtyErr, retry.OnRetry(func(n uint, err error) {
-		fp.logger.Debug(
-			"failed to query babylon for the highest voted height",
-			zap.Uint("attempt", n+1),
-			zap.Uint("max_attempts", RtyAttNum),
-			zap.Error(err),
-		)
-	})); err != nil {
-		return 0, err
-	}
-
-	return height, nil
-}
-
-func (fp *FinalityProviderInstance) getFinalityActivationHeightWithRetry() (uint64, error) {
-	var response uint64
-	if err := retry.Do(func() error {
-		finalityActivationHeight, err := fp.cc.QueryFinalityActivationBlockHeight()
-		if err != nil {
-			return err
-		}
-		response = finalityActivationHeight
-		return nil
-	}, RtyAtt, RtyDel, RtyErr, retry.OnRetry(func(n uint, err error) {
-		fp.logger.Debug(
-			"failed to query babylon for the finality activation height",
-			zap.Uint("attempt", n+1),
-			zap.Uint("max_attempts", RtyAttNum),
-			zap.Error(err),
-		)
-	})); err != nil {
-		return 0, err
-	}
-	return response, nil
 }
 
 func (fp *FinalityProviderInstance) getLatestBlockWithRetry() (*types.BlockInfo, error) {
@@ -985,14 +966,14 @@ func (fp *FinalityProviderInstance) getLatestBlockWithRetry() (*types.BlockInfo,
 	return latestBlock, nil
 }
 
-func (fp *FinalityProviderInstance) GetVotingPowerWithRetry(height uint64) (uint64, error) {
+func (fp *FinalityProviderInstance) GetVotingPowerWithRetry(height uint64) (bool, error) {
 	var (
-		power uint64
-		err   error
+		hasPower bool
+		err      error
 	)
 
 	if err := retry.Do(func() error {
-		power, err = fp.cc.QueryFinalityProviderVotingPower(fp.GetBtcPk(), height)
+		hasPower, err = fp.cc.QueryFinalityProviderVotingPower(fp.GetBtcPk(), height)
 		if err != nil {
 			return err
 		}
@@ -1005,10 +986,10 @@ func (fp *FinalityProviderInstance) GetVotingPowerWithRetry(height uint64) (uint
 			zap.Error(err),
 		)
 	})); err != nil {
-		return 0, err
+		return false, err
 	}
 
-	return power, nil
+	return hasPower, nil
 }
 
 func (fp *FinalityProviderInstance) GetFinalityProviderSlashedOrJailedWithRetry() (bool, bool, error) {

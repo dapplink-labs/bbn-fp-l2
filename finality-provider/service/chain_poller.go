@@ -120,25 +120,25 @@ func (cp *ChainPoller) GetBlockInfoChan() <-chan *types.BlockInfo {
 func (cp *ChainPoller) blockWithRetry(height uint64) (*types.BlockInfo, error) {
 	var (
 		block *types.BlockInfo
-		err   error
+		//err   error
 	)
-	if err := retry.Do(func() error {
-		block, err = cp.cc.QueryBlock(height)
-		if err != nil {
-			return err
-		}
-		return nil
-	}, RtyAtt, RtyDel, RtyErr, retry.OnRetry(func(n uint, err error) {
-		cp.logger.Debug(
-			"failed to query the consumer chain for the latest block",
-			zap.Uint("attempt", n+1),
-			zap.Uint("max_attempts", RtyAttNum),
-			zap.Uint64("height", height),
-			zap.Error(err),
-		)
-	})); err != nil {
-		return nil, err
-	}
+	//if err := retry.Do(func() error {
+	//	block, err = cp.cc.QueryBlock(height)
+	//	if err != nil {
+	//		return err
+	//	}
+	//	return nil
+	//}, RtyAtt, RtyDel, RtyErr, retry.OnRetry(func(n uint, err error) {
+	//	cp.logger.Debug(
+	//		"failed to query the consumer chain for the latest block",
+	//		zap.Uint("attempt", n+1),
+	//		zap.Uint("max_attempts", RtyAttNum),
+	//		zap.Uint64("height", height),
+	//		zap.Error(err),
+	//	)
+	//})); err != nil {
+	//	return nil, err
+	//}
 
 	return block, nil
 }

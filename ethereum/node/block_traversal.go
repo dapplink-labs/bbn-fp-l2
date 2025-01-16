@@ -3,12 +3,11 @@ package node
 import (
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/log"
-
 	"github.com/Manta-Network/manta-fp/ethereum/bigint"
+	"github.com/ethereum/go-ethereum/core/types"
 )
 
 var (
@@ -20,6 +19,7 @@ var (
 type BlockTraversal struct {
 	ethClient EthClient
 	chainId   uint
+	log       *zap.Logger
 
 	latestBlock        *big.Int
 	lastTraversedBlock *big.Int
@@ -27,12 +27,13 @@ type BlockTraversal struct {
 	blockConfirmationDepth *big.Int
 }
 
-func NewBlockTraversal(ethClient EthClient, fromBlock *big.Int, confDepth *big.Int, chainId uint) *BlockTraversal {
+func NewBlockTraversal(ethClient EthClient, fromBlock *big.Int, confDepth *big.Int, chainId uint, logger *zap.Logger) *BlockTraversal {
 	return &BlockTraversal{
 		ethClient:              ethClient,
 		lastTraversedBlock:     fromBlock,
 		blockConfirmationDepth: confDepth,
 		chainId:                chainId,
+		log:                    logger,
 	}
 }
 
@@ -54,14 +55,14 @@ func (f *BlockTraversal) NextHeaders(maxSize uint64) ([]types.Header, error) {
 		f.latestBlock = latestHeader.Number
 	}
 
-	log.Info("header traversal db latest header: ", "latestBlock", latestHeader.Number)
+	f.log.Info("header traversal db latest header: ", zap.Uint64("latestBlock", latestHeader.Number.Uint64()))
 
 	endHeight := new(big.Int).Sub(latestHeader.Number, f.blockConfirmationDepth)
 	if endHeight.Sign() < 0 {
 		return nil, nil
 	}
 
-	log.Info("header traversal last traversed deader to json: ", "lastTraversedBlock", f.lastTraversedBlock)
+	f.log.Info("header traversal last traversed deader to json: ", zap.Uint64("lastTraversedBlock", f.lastTraversedBlock.Uint64()))
 
 	if f.lastTraversedBlock != nil {
 		cmp := f.lastTraversedBlock.Cmp(endHeight)
@@ -87,14 +88,14 @@ func (f *BlockTraversal) NextHeaders(maxSize uint64) ([]types.Header, error) {
 	}
 	err = f.checkHeaderListByHash(f.lastTraversedBlock, headers)
 	if err != nil {
-		log.Error("next headers check blockList by hash", "error", err)
+		f.log.Error("next headers check blockList by hash", zap.String("error", err.Error()))
 		return nil, err
 	}
 	numHeaders := len(headers)
 	if numHeaders == 0 {
 		return nil, nil
-	} else if f.lastTraversedBlock != nil && headers[0].Number != new(big.Int).Add(f.lastTraversedBlock, big.NewInt(1)) {
-		log.Error("Err header traversal and provider mismatched state", "parentHash = ", headers[0].ParentHash.String(), "hash")
+	} else if f.lastTraversedBlock != nil && headers[0].Number.Uint64() != new(big.Int).Add(f.lastTraversedBlock, big.NewInt(1)).Uint64() {
+		f.log.Error("Err header traversal and provider mismatched state", zap.String("parentHash = ", headers[0].ParentHash.String()))
 		return nil, ErrBlockTraversalAndProviderMismatchedState
 	}
 	f.lastTraversedBlock = headers[numHeaders-1].Number
@@ -109,13 +110,13 @@ func (f *BlockTraversal) checkHeaderListByHash(dbLatestBlock *big.Int, headerLis
 		return nil
 	}
 
-	if dbLatestBlock != nil && headerList[0].Number != new(big.Int).Add(dbLatestBlock, big.NewInt(1)) {
-		log.Error("check header list by hash", "parentHash = ", headerList[0].ParentHash.String())
+	if dbLatestBlock != nil && headerList[0].Number.Uint64() != new(big.Int).Add(dbLatestBlock, big.NewInt(1)).Uint64() {
+		f.log.Error("check header list by hash", zap.String("parentHash = ", headerList[0].ParentHash.String()))
 		return ErrBlockTraversalCheckBlockFail
 	}
 
 	for i := 1; i < len(headerList); i++ {
-		if headerList[i].ParentHash != headerList[i-1].Hash() {
+		if headerList[i].ParentHash != headerList[i-1].Hash() && headerList[i].Number != nil {
 			return fmt.Errorf("check header list by hash: block parent hash not equal parent block hash")
 		}
 	}

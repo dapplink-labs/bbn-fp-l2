@@ -10,7 +10,7 @@ import (
 
 var (
 	// mapping: pub_rand -> proof
-	pubRandProofBucketName = []byte("pub_rand_proof")
+	pubRandProofBucketName = []byte("pub_rand_proof9")
 )
 
 type PubRandProofStore struct {
