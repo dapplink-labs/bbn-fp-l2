@@ -3,6 +3,8 @@ TOOLS_DIR := tools
 
 BABYLON_PKG := github.com/babylonlabs-io/babylon/cmd/babylond
 
+MANTA_STAKING_ARTIFACT := ./manta-staking-contracts/out/MantaStakingMiddleware.sol/MantaStakingMiddleware.json
+
 GO_BIN := ${GOPATH}/bin
 BTCD_BIN := $(GO_BIN)/btcd
 
@@ -72,5 +74,21 @@ proto-all: proto-gen
 proto-gen:
 	make -C eotsmanager proto-gen
 	make -C finality-provider proto-gen
+
+binding:
+	$(eval temp := $(shell mktemp))
+
+	cat $(MANTA_STAKING_ARTIFACT) \
+    	| jq -r .bytecode.object > $(temp)
+
+	cat $(MANTA_STAKING_ARTIFACT) \
+		| jq .abi \
+		| abigen --pkg bindings \
+		--abi - \
+		--out bindings/manta_staking_middleware.go \
+		--type MantaStakingMiddleware \
+		--bin $(temp)
+
+		rm $(temp)
 
 .PHONY: proto-gen
