@@ -20,7 +20,7 @@ import (
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/stretchr/testify/require"
 
-	"github.com/Manta-Network/manta-fp/finality-provider/cmd/fpd/daemon"
+	"github.com/Manta-Network/manta-fp/fp/bbn-fp/cmd/fpd/daemon"
 	"github.com/Manta-Network/manta-fp/types"
 )
 
@@ -29,7 +29,7 @@ var (
 	stakingAmount = int64(500000)
 )
 
-// TestFinalityProviderLifeCycle tests the whole life cycle of a finality-provider
+// TestFinalityProviderLifeCycle tests the whole life cycle of a bbn-fp
 // creation -> registration -> randomness commitment ->
 // activation with BTC delegation and Covenant sig ->
 // vote submission -> block finalization
@@ -69,7 +69,7 @@ func TestFinalityProviderLifeCycle(t *testing.T) {
 	t.Logf("the block at height %v is finalized", lastVotedHeight)
 }
 
-// TestDoubleSigning tests the attack scenario where the finality-provider
+// TestDoubleSigning tests the attack scenario where the bbn-fp
 // sends a finality vote over a conflicting block
 // in this case, the BTC private key should be extracted by Babylon
 func TestDoubleSigning(t *testing.T) {
@@ -110,7 +110,7 @@ func TestDoubleSigning(t *testing.T) {
 	t.Logf("duplicate vote for %d is sent", finalizedBlocks[0].Height)
 
 	// attack: manually submit a finality vote over a conflicting block
-	// to trigger the extraction of finality-provider's private key
+	// to trigger the extraction of bbn-fp's private key
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	b := &types.BlockInfo{
 		Height: finalizedBlocks[0].Height,
@@ -165,7 +165,7 @@ func TestCatchingUp(t *testing.T) {
 	finalizedBlocks = tm.WaitForNFinalizedBlocks(t, 1)
 
 	n := 3
-	// stop the finality-provider for a few blocks then restart to trigger the fast sync
+	// stop the bbn-fp for a few blocks then restart to trigger the fast sync
 	tm.StopAndRestartFpAfterNBlocks(t, n, fpIns)
 
 	// check there are n+1 blocks finalized
@@ -301,7 +301,7 @@ func TestFinalityProviderCreateCmd(t *testing.T) {
 		EotsPK:           eotsPk.MarshalHex(),
 	}
 
-	file, err := os.Create(fmt.Sprintf("%s/%s", t.TempDir(), "finality-provider.json"))
+	file, err := os.Create(fmt.Sprintf("%s/%s", t.TempDir(), "bbn-fp.json"))
 	if err != nil {
 		log.Fatalf("Failed to create file: %v", err)
 	}

@@ -45,7 +45,7 @@ func CreateClientCtx(keyringDir string, chainID string) (client.Context, error) 
 		if err != nil {
 			return client.Context{}, err
 		}
-		keyringDir = path.Join(homeDir, ".finality-provider")
+		keyringDir = path.Join(homeDir, ".bbn-fp")
 	}
 
 	return client.Context{}.

@@ -10,7 +10,7 @@ import (
 	"github.com/btcsuite/btcd/chaincfg"
 	"go.uber.org/zap"
 
-	fpcfg "github.com/Manta-Network/manta-fp/finality-provider/config"
+	fpcfg "github.com/Manta-Network/manta-fp/fp/bbn-fp/config"
 	"github.com/Manta-Network/manta-fp/types"
 )
 

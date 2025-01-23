@@ -39,8 +39,8 @@ import (
 	fpcc "github.com/Manta-Network/manta-fp/clientcontroller"
 	"github.com/Manta-Network/manta-fp/eotsmanager/client"
 	eotsconfig "github.com/Manta-Network/manta-fp/eotsmanager/config"
-	fpcfg "github.com/Manta-Network/manta-fp/finality-provider/config"
-	"github.com/Manta-Network/manta-fp/finality-provider/service"
+	fpcfg "github.com/Manta-Network/manta-fp/fp/bbn-fp/config"
+	"github.com/Manta-Network/manta-fp/fp/bbn-fp/service"
 	"github.com/Manta-Network/manta-fp/types"
 )
 
@@ -119,7 +119,7 @@ func StartManager(t *testing.T) *TestManager {
 
 	var bc *fpcc.BabylonController
 	require.Eventually(t, func() bool {
-		bc, err = fpcc.NewBabylonController(cfg.BabylonConfig, &cfg.BTCNetParams, logger)
+		bc, err = fpcc.NewBabylonController(cfg.BabylonConfig, cfg.OpEventConfig, &cfg.BTCNetParams, logger)
 		return err == nil
 	}, 5*time.Second, eventuallyPollTime)
 
@@ -181,7 +181,7 @@ func (tm *TestManager) AddFinalityProvider(t *testing.T) *service.FinalityProvid
 	// create and start finality provider app
 	eotsCli, err := client.NewEOTSManagerGRpcClient(tm.EOTSServerHandler.Cfg.RPCListener)
 	require.NoError(t, err)
-	cc, err := fpcc.NewClientController(cfg.ChainType, cfg.BabylonConfig, &cfg.BTCNetParams, tm.logger)
+	cc, err := fpcc.NewClientController(cfg.ChainType, cfg.BabylonConfig, cfg.OpEventConfig, &cfg.BTCNetParams, tm.logger)
 	require.NoError(t, err)
 	fpdb, err := cfg.DatabaseConfig.GetDBBackend()
 	require.NoError(t, err)
@@ -368,7 +368,7 @@ func (tm *TestManager) CheckBlockFinalization(t *testing.T, height uint64, num i
 			t.Logf("failed to query block at height %v: %s", height, err.Error())
 			return false
 		}
-		return b.Finalized
+		return b
 	}, eventuallyWaitTimeOut, eventuallyPollTime)
 }
 
@@ -388,21 +388,21 @@ func (tm *TestManager) WaitForFpVoteCast(t *testing.T, fpIns *service.FinalityPr
 
 func (tm *TestManager) WaitForNFinalizedBlocks(t *testing.T, n int) []*types.BlockInfo {
 	var (
-		blocks []*types.BlockInfo
-		err    error
+		blockHeight uint64
+		err         error
 	)
 	require.Eventually(t, func() bool {
-		blocks, err = tm.BBNClient.QueryLatestFinalizedBlocks(uint64(n))
+		blockHeight, err = tm.BBNClient.QueryLatestFinalizedBlocks()
 		if err != nil {
 			t.Logf("failed to get the latest finalized block: %s", err.Error())
 			return false
 		}
-		return len(blocks) == n
+		return true
 	}, eventuallyWaitTimeOut, eventuallyPollTime)
 
-	t.Logf("the block is finalized at %v", blocks[0].Height)
+	t.Logf("the block is finalized at %v", blockHeight)
 
-	return blocks
+	return nil
 }
 
 func (tm *TestManager) StopAndRestartFpAfterNBlocks(t *testing.T, n int, fpIns *service.FinalityProviderInstance) {
@@ -420,7 +420,7 @@ func (tm *TestManager) StopAndRestartFpAfterNBlocks(t *testing.T, n int, fpIns *
 		return headerAfterStop.Height >= uint64(n)+blockBeforeStop.Height
 	}, eventuallyWaitTimeOut, eventuallyPollTime)
 
-	t.Log("restarting the finality-provider instance")
+	t.Log("restarting the bbn-fp instance")
 
 	err = fpIns.Start()
 	require.NoError(t, err)

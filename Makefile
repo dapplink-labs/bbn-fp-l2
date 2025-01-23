@@ -73,7 +73,7 @@ proto-all: proto-gen
 
 proto-gen:
 	make -C eotsmanager proto-gen
-	make -C finality-provider proto-gen
+	make -C fp/bbn-fp proto-gen
 
 binding:
 	$(eval temp := $(shell mktemp))

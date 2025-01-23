@@ -3,7 +3,7 @@ package config_test
 import (
 	"testing"
 
-	"github.com/babylonlabs-io/finality-provider/cosmwasmclient/config"
+	"github.com/Manta-Network/manta-fp/cosmwasmclient/config"
 	"github.com/stretchr/testify/require"
 )
 

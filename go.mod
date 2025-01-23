@@ -5,8 +5,11 @@ go 1.23.1
 toolchain go1.23.3
 
 require (
+	cloud.google.com/go/kms v1.15.7
 	cosmossdk.io/errors v1.0.1
+	cosmossdk.io/log v1.4.1
 	cosmossdk.io/math v1.4.0
+	github.com/CosmWasm/wasmd v0.53.0
 	github.com/avast/retry-go/v4 v4.5.1
 	github.com/babylonlabs-io/babylon v0.9.3-0.20240925223611-a98269d17887
 	github.com/btcsuite/btcd v0.24.2
@@ -14,28 +17,35 @@ require (
 	github.com/btcsuite/btcd/btcutil v1.1.6
 	github.com/btcsuite/btcwallet/walletdb v1.4.0
 	github.com/cometbft/cometbft v0.38.15
+	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
 	github.com/cosmos/cosmos-sdk v0.50.9
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/cosmos/relayer/v2 v2.5.2
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0
+	github.com/decred/dcrd/hdkeychain/v3 v3.1.2
 	github.com/ethereum-optimism/optimism v1.10.0
 	github.com/ethereum/go-ethereum v1.14.12
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/mock v1.6.0
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/jsternberg/zap-logfmt v1.3.0
+	github.com/juju/fslock v0.0.0-20160525022230-4d5c94c67b4b
 	github.com/lightningnetwork/lnd v0.16.4-beta.rc1
 	github.com/lightningnetwork/lnd/kvdb v1.4.1
 	github.com/ory/dockertest/v3 v3.9.1
+	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.20.5
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.9.0
+	github.com/tyler-smith/go-bip39 v1.1.0
 	go.uber.org/atomic v1.10.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/mod v0.21.0
+	google.golang.org/api v0.171.0
+	google.golang.org/genproto v0.0.0-20240227224415-6ceb2ff114de
 	google.golang.org/grpc v1.67.1
 	google.golang.org/protobuf v1.35.1
 	sigs.k8s.io/yaml v1.4.0
@@ -51,7 +61,6 @@ require (
 	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/core v0.11.1 // indirect
 	cosmossdk.io/depinject v1.0.0 // indirect
-	cosmossdk.io/log v1.4.1 // indirect
 	cosmossdk.io/store v1.1.0 // indirect
 	cosmossdk.io/x/circuit v0.1.1 // indirect
 	cosmossdk.io/x/evidence v0.1.1 // indirect
@@ -65,7 +74,6 @@ require (
 	github.com/99designs/keyring v1.2.1 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
 	github.com/BurntSushi/toml v1.4.0 // indirect
-	github.com/CosmWasm/wasmd v0.53.0 // indirect
 	github.com/CosmWasm/wasmvm/v2 v2.1.3 // indirect
 	github.com/DataDog/datadog-go v3.2.0+incompatible // indirect
 	github.com/DataDog/zstd v1.5.6-0.20230824185856-869dae002e5e // indirect
@@ -100,7 +108,6 @@ require (
 	github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f // indirect
 	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
-	github.com/cosmos/cosmos-db v1.0.2 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/iavl v1.2.0 // indirect
 	github.com/cosmos/ibc-go/modules/apps/callbacks v0.2.1-0.20231113120333-342c00b0f8bd // indirect
@@ -115,7 +122,9 @@ require (
 	github.com/danieljoos/wincred v1.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/deckarep/golang-set/v2 v2.6.0 // indirect
+	github.com/decred/base58 v1.0.5 // indirect
 	github.com/decred/dcrd/crypto/blake256 v1.0.1 // indirect
+	github.com/decred/dcrd/crypto/ripemd160 v1.0.2 // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/dgraph-io/badger/v4 v4.3.0 // indirect
 	github.com/dgraph-io/ristretto v0.1.2-0.20240116140435-c67e07994f91 // indirect
@@ -207,7 +216,6 @@ require (
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/jonboulle/clockwork v0.2.2 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/juju/fslock v0.0.0-20160525022230-4d5c94c67b4b // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/kkdai/bstream v1.0.0 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
@@ -247,7 +255,6 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/petermattis/goid v0.0.0-20240813172612-4fcff4a6cae7 // indirect
 	github.com/pierrec/lz4/v4 v4.1.18 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.60.1 // indirect
@@ -281,7 +288,6 @@ require (
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20201229170055-e5319fda7802 // indirect
-	github.com/tyler-smith/go-bip39 v1.1.0 // indirect
 	github.com/ulikunitz/xz v0.5.11 // indirect
 	github.com/urfave/cli/v2 v2.27.5 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
@@ -322,8 +328,6 @@ require (
 	golang.org/x/text v0.19.0 // indirect
 	golang.org/x/time v0.7.0 // indirect
 	golang.org/x/tools v0.26.0 // indirect
-	google.golang.org/api v0.171.0 // indirect
-	google.golang.org/genproto v0.0.0-20240227224415-6ceb2ff114de // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240903143218-8af14fe29dc1 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240903143218-8af14fe29dc1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect

@@ -15,7 +15,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/Manta-Network/manta-fp/finality-provider/store"
+	"github.com/Manta-Network/manta-fp/fp/bbn-fp/store"
 	fpkr "github.com/Manta-Network/manta-fp/keyring"
 
 	"github.com/Manta-Network/manta-fp/codec"

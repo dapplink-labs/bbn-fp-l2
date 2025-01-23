@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Manta-Network/manta-fp/finality-provider/proto"
+	"github.com/Manta-Network/manta-fp/fp/bbn-fp/proto"
 
 	sdkErr "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -37,7 +37,7 @@ import (
 	protobuf "google.golang.org/protobuf/proto"
 
 	opclient "github.com/Manta-Network/manta-fp/ethereum/node"
-	fpcfg "github.com/Manta-Network/manta-fp/finality-provider/config"
+	fpcfg "github.com/Manta-Network/manta-fp/fp/bbn-fp/config"
 	"github.com/Manta-Network/manta-fp/types"
 )
 
